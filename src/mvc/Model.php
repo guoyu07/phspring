@@ -2,11 +2,11 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\mvc\base;
+namespace phspring\mvc;
 
 /**
  * Class Model
- * @package phspring\mvc\base
+ * @package phspring\mvc
  */
 class Model extends Base
 {
