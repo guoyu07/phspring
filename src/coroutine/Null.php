@@ -2,11 +2,11 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\coroutine\base;
+namespace phspring\coroutine;
 
 /**
  * Class Null
- * @package phspring\coroutine\base
+ * @package phspring\coroutine
  */
 class Null
 {

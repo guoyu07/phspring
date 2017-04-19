@@ -12,7 +12,7 @@ use Monolog\{
  * Class Log
  * @package phspring\toolbox\log
  */
-class Log extends Logger
+class Log extends Logger implements ILog
 {
     /**
      * 访问请求日志变量，此变量不用unset，因为每次请求initialization都会重新赋值
@@ -146,7 +146,6 @@ class Log extends Logger
 
         return true;
     }
-
 
     /**
      * add logId to log.
