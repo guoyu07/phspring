@@ -12,34 +12,35 @@ interface ILog
 {
 
     /**
-     * init
-     */
-    public function init();
-
-    /**
-     * append log to notice log.
-     */
-    public function appendNoticeLog();
-
-    /**
-     * Adds a log record.（解决原始版本的进程崩溃问题）
-     *
-     * @param int $level The logging level
-     * @param string $message The log message
+     * @param $message The log message
      * @param array $context The log context
-     * @return Boolean Whether the record has been processed
+     * @return mixed
      */
-    public function addRecord(int $level, string $message, array $context = []): bool;
+    public function notice($message, array $context = []);
 
     /**
-     * get profile info.
-     *
-     * @return string
+     * @param $message The log message
+     * @param array $context The log context
+     * @return mixed
      */
-    public function getAllProfileInfo();
+    public function info($message, array $context = []);
 
     /**
-     * for info level log only
+     * @param $message The log message
+     * @param array $context The log context
+     * @return mixed
+     */
+    public function warning($message, array $context = []);
+
+    /**
+     * @param $message The log message
+     * @param array $context The log context
+     * @return mixed
+     */
+    public function error($message, array $context = []);
+
+    /**
+     * push log to notice.
      *
      * @param string|number $key
      * @param string $val

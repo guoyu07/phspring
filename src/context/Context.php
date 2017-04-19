@@ -22,4 +22,28 @@ class Context extends AppContext
      * @var
      */
     public $log = null;
+
+    /**
+     * @param $input \phspring\mvc\Input
+     */
+    public function setInput($input)
+    {
+        $this->input = $input;
+    }
+
+    /**
+     * @param $output \phspring\mvc\Output
+     */
+    public function setOutput($output)
+    {
+        $this->output = $output;
+    }
+
+    /**
+     * @param $log
+     */
+    public function setLog($log)
+    {
+        $this->log = $log;
+    }
 }

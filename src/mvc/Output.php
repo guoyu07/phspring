@@ -4,11 +4,16 @@
  */
 namespace phspring\mvc;
 
+use phspring\core\Bean;
+
 /**
- * Class Response
+ * Class Output
  * @package phspring\mvc
  */
-class Response
+class Output extends Bean
 {
+    public function send()
+    {
 
+    }
 }

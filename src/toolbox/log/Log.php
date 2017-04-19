@@ -80,6 +80,26 @@ class Log extends Logger implements ILog
         $this->channel();
     }
 
+    public function notice($message, array $context = [])
+    {
+        // TODO: Implement notice() method.
+    }
+
+    public function info($message, array $context = [])
+    {
+        // TODO: Implement info() method.
+    }
+
+    public function warning($message, array $context = [])
+    {
+        // TODO: Implement warning() method.
+    }
+
+    public function error($message, array $context = [])
+    {
+        // TODO: Implement error() method.
+    }
+
     /**
      * append log to notice log.
      */
@@ -99,6 +119,7 @@ class Log extends Logger implements ILog
         $this->_countings = [];
         $this->_pushlogs = [];
         $this->notice($message);
+        //$this->processors = []; // 解决内存溢出问题.
     }
 
     /**
@@ -184,15 +205,15 @@ class Log extends Logger implements ILog
             return '';
         }
 
-        $arrOut = [];
+        $msgs = [];
         foreach ($this->_profiles as $name => $val) {
             if (!isset($val['cost'], $val['total'])) {
                 continue;
             }
-            $arrOut[] = "$name=" . sprintf("%.1f", $val['cost'] * 1000) . '(ms)/' . $val['total'];
+            $msgs[] = "$name=" . sprintf("%.1f", $val['cost'] * 1000) . '(ms)/' . $val['total'];
         }
 
-        return implode(',', $arrOut);
+        return implode(',', $msgs);
     }
 
     /**
@@ -203,16 +224,17 @@ class Log extends Logger implements ILog
         if (empty($this->_countings)) {
             return '';
         }
-        $arrCounting = [];
+
+        $msgs = [];
         foreach ($this->_countings as $k => $v) {
             if (isset($v['hit'], $v['total']) && $v['total'] != 0) {
-                $arrCounting[] = "$k=" . $v['hit'] . '/' . $v['total'];
+                $msgs[] = "$k=" . $v['hit'] . '/' . $v['total'];
             } elseif (isset($v['hit'])) {
-                $arrCounting[] = "$k=" . $v['hit'];
+                $msgs[] = "$k=" . $v['hit'];
             }
         }
 
-        return implode(',', $arrCounting);
+        return implode(',', $msgs);
     }
 
     /**

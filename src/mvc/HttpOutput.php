@@ -5,10 +5,10 @@
 namespace phspring\mvc;
 
 /**
- * Class Request
+ * Class HttpOutput
  * @package phspring\mvc
  */
-class Request
+class HttpOutput extends Output
 {
 
 }

@@ -7,10 +7,10 @@ namespace phspring\mvc;
 use phspring\core\Bean;
 
 /**
- * Class Base
+ * Class Input
  * @package phspring\mvc
  */
-class Base extends Bean
+class Input extends Bean
 {
 
 }
