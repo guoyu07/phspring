@@ -5,6 +5,7 @@
 namespace phspring\context;
 
 use phspring\core\BeanFactory;
+use phspring\coroutine\Scheduler;
 use phspring\toolbox\config\Configurator;
 
 /**
@@ -21,6 +22,10 @@ class AppContext extends BeanFactory
      * @var \phspring\toolbox\i18n\I18N
      */
     public $i18n = null;
+    /**
+     * @var \phspring\coroutine\Scheduler
+     */
+    public $scheduler = null;
 
     /**
      * AppContext constructor.
@@ -45,10 +50,17 @@ class AppContext extends BeanFactory
      */
     public function setI18n()
     {
-        $i18nConfig = $this->config->get(i18n);
+        $i18nConfig = $this->config->get('i18n');
         if (!empty($i18nConfig)) {
             $this->i18n = $this->getBean('i18n', $i18nConfig);
         }
     }
 
+    /**
+     * set coroutine scheduler.
+     */
+    public function setCoroutine()
+    {
+        $this->coroutine = new Scheduler();
+    }
 }

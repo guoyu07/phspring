@@ -13,6 +13,10 @@ use phspring\context\Ac;
 class BeanPool extends Bean
 {
     /**
+     * @var string
+     */
+    public $scope = 'pool';
+    /**
      * @var array
      */
     private $map = [];

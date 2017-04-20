@@ -8,7 +8,21 @@ namespace phspring\coroutine;
  * Class IBase
  * @package phspring\coroutine
  */
-class IBase
+interface IBase
 {
+    /**
+     * @return mixed
+     */
+    public function isTimeout();
 
+    /**
+     * @param callable $callback
+     * @return mixed
+     */
+    public function send(callable $callback);
+
+    /**
+     * @return mixed
+     */
+    public function getResult();
 }
