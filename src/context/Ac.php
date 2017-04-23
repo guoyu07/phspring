@@ -56,7 +56,7 @@ class Ac
      * @param $language
      * @return mixed
      */
-    public static function i18n($category, $message, $params, $language)
+    public static function t($category, $message, $params, $language)
     {
         return self::$appContext->i18n->translate($category, $message, $params, $language);
     }

@@ -17,11 +17,11 @@ class CoroutineContext extends Context
     /**
      * @var
      */
-    protected $controllerName;
+    protected $controllerId;
     /**
      * @var
      */
-    protected $methodName;
+    protected $methodId;
     /**
      * @var array
      */
@@ -59,7 +59,7 @@ class CoroutineContext extends Context
     /**
      * @param $number
      */
-    public function setStackMessage($number)
+    public function addYieldStackMessage($number)
     {
         $this->stack[$this->layer][] = "| #第 {$this->layer} 层嵌套出错在第 ++$number 个yield后";
     }
@@ -74,15 +74,15 @@ class CoroutineContext extends Context
 
     /**
      * @param string $controller
-     * @param string $controllerName
-     * @param string $methodName
+     * @param string $controllerId
+     * @param string $methodId
      */
-    public function setController($controller, $controllerName, $methodName)
+    public function setController($controller, $controllerId, $methodId)
     {
         $this->controller = $controller;
-        $this->controllerName = $controllerName;
-        $this->methodName = $methodName;
-        $this->stack[$this->layer][] = "| #目标函数： $controllerName -> $methodName";
+        $this->controllerId = $controllerId;
+        $this->methodId = $methodId;
+        $this->stack[$this->layer][] = "| # Target function-> $controllerId::$methodId";
     }
 
     /**
@@ -90,7 +90,7 @@ class CoroutineContext extends Context
      */
     public function getTraceStack()
     {
-        $trace = "协程错误指南: \n";
+        $trace = "Coroutine error trace: \n";
         foreach ($this->stack as $i => $v) {
             foreach ($v as $value) {
                 $trace .= "{$value}\n";
@@ -107,7 +107,7 @@ class CoroutineContext extends Context
      */
     public function setErrorFile($file, $line)
     {
-        $this->stack[$this->layer][] = "| #出错文件: $file($line)";
+        $this->stack[$this->layer][] = "| # Error file: $file($line)";
     }
 
     /**
@@ -115,7 +115,7 @@ class CoroutineContext extends Context
      */
     public function setErrorMessage($message)
     {
-        $this->stack[$this->layer][] = "| #报错消息: $message";
+        $this->stack[$this->layer][] = "| # Error message: $message";
     }
 
     /**

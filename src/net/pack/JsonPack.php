@@ -4,19 +4,29 @@
  */
 namespace phspring\net\pack;
 
+use phspring\toolbox\helper\JsonHelper;
+
 /**
  * Class JsonPack
  * @package phspring\net\pack
  */
-class JsonPack
+class JsonPack implements IPack
 {
-    public function pack($data)
+    /**
+     * @param $data
+     * @return string
+     */
+    public function encode($data)
     {
-
+        return JsonHelper::encode($data);
     }
 
-    public function unPack($data)
+    /**
+     * @param $data
+     * @return mixed
+     */
+    public function decode($data)
     {
-
+        return JsonHelper::decode($data);
     }
 }

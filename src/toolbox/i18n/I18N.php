@@ -10,7 +10,7 @@ use phspring\core\Bean;
  * Class I18N
  * @package phspring\toolbox\i18n
  */
-class I18N extends Bean
+class I18n extends Bean
 {
     /**
      * @var null

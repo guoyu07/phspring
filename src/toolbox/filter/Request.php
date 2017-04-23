@@ -4,7 +4,9 @@
  */
 namespace phspring\toolbox\filter;
 
-class Request
+use phspring\core\Bean;
+
+class Request extends Bean
 {
     /**
      * @var string 当前访问请求的 controller 名称

@@ -4,14 +4,19 @@
  */
 namespace phspring\mvc\route;
 
+use phspring\core\Bean;
+
 /**
- * Interface IRoute
+ * class IRoute
  * @package phspring\mvc\route
  */
-interface IRoute
+class Route extends Bean implements IRoute
 {
     /**
-     * parse request
+     * @return
      */
-    public function parseRequest();
+    public function parseRequest()
+    {
+
+    }
 }

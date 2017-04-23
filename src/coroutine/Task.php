@@ -67,7 +67,7 @@ class Task
             }
 
             if ($value != null && $value instanceof IBase) {
-                if ($value->isTimeout()) {
+                if ($value->isTimeout()) { // timeout
                     try {
                         $value->throwSwooleException();
                     } catch (\Exception $e) {
@@ -75,9 +75,9 @@ class Task
                     }
                     unset($value);
                     $routine->send(null);
-                } else {
+                } else { // normal
                     $result = $value->getResult();
-                    if ($result !== Null::getInstance()) {
+                    if ($result !== Instance::get()) {
                         unset($value);
                         $routine->send($result);
                     }
@@ -106,7 +106,6 @@ class Task
             }
 
             $runTaskException = $this->handleTaskException($e, $value);
-
             if ($this->coroutineContext->getController() != null) {
                 call_user_func([$this->coroutineContext->getController(), 'onExceptionHandle'], $runTaskException);
             } else {

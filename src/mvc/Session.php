@@ -7,13 +7,10 @@ namespace phspring\mvc;
 use phspring\core\Bean;
 
 /**
- * Class Base
+ * Class Session
  * @package phspring\mvc
  */
-class Base extends Bean
+class Session extends Bean
 {
-    /**
-     * @var \phspring\context\Context
-     */
-    public $context;
+
 }

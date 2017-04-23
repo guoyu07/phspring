@@ -6,6 +6,7 @@ namespace phspring\context;
 
 use phspring\core\BeanFactory;
 use phspring\coroutine\Scheduler;
+use phspring\net\pack\JsonPack;
 use phspring\toolbox\config\Configurator;
 
 /**
@@ -14,6 +15,15 @@ use phspring\toolbox\config\Configurator;
  */
 class AppContext extends BeanFactory
 {
+    /**
+     * @var int The global increment id
+     */
+    public static $globalId = 0;
+
+    /**
+     * @var int Process id
+     */
+    public $pid = 0;
     /**
      * @var \phspring\toolbox\config\Configurator
      */
@@ -26,6 +36,10 @@ class AppContext extends BeanFactory
      * @var \phspring\coroutine\Scheduler
      */
     public $scheduler = null;
+    /**
+     * @var \phspring\net\pack\IPack
+     */
+    public $packer = null;
 
     /**
      * AppContext constructor.
@@ -33,8 +47,18 @@ class AppContext extends BeanFactory
      */
     public function __construct($configPath)
     {
+        $this->setPid();
         $this->setConfig($configPath);
         $this->setI18n();
+        $this->setPacker();
+    }
+
+    /**
+     * @param $pid
+     */
+    public function setPid()
+    {
+        $this->pid = getmypid();
     }
 
     /**
@@ -61,6 +85,15 @@ class AppContext extends BeanFactory
      */
     public function setCoroutine()
     {
-        $this->coroutine = new Scheduler();
+        $this->scheduler = new Scheduler();
+    }
+
+    /**
+     * @param $pack
+     */
+    public function setPacker()
+    {
+        $packer = $this->config->get('server.packer', JsonPack::class);
+        $this->packer = new $packer();
     }
 }

@@ -10,71 +10,113 @@ namespace phspring\mvc;
  */
 class HttpInput extends Input
 {
+    /**
+     * @return bool
+     */
     public function isGet(): bool
     {
 
     }
 
+    /**
+     * @return bool
+     */
     public function isPost(): bool
     {
 
     }
 
+    /**
+     * @return bool
+     */
     public function isOptions(): bool
     {
 
     }
 
+    /**
+     * @return bool
+     */
     public function isHead(): bool
     {
 
     }
 
+    /**
+     * @return bool
+     */
     public function isDelete(): bool
     {
 
     }
 
+    /**
+     * @return bool
+     */
     public function isPut(): bool
     {
 
     }
 
+    /**
+     * @return bool
+     */
     public function isPatch(): bool
     {
 
     }
 
+    /**
+     * @return bool
+     */
     public function isAjax(): bool
     {
 
     }
 
+    /**
+     * @return string
+     */
     public function getProtocol()
     {
 
     }
 
+    /**
+     * @return string
+     */
     public function getUri()
     {
 
     }
 
+    /**
+     * @return string
+     */
     public function getScheme()
     {
 
     }
 
+    /**
+     * @return int
+     */
     public function getPort()
     {
 
     }
 
+    /**
+     * @return string
+     */
     public function getIp()
     {
 
     }
 
+    /**
+     * @return string
+     */
     public function getMethod()
     {
         if (isset($_POST[$this->requestMethod])) {
@@ -90,31 +132,52 @@ class HttpInput extends Input
         return 'GET';
     }
 
+    /**
+     * @return string
+     */
     public function getReferer()
     {
 
     }
 
+    /**
+     * @return string
+     */
     public function getRawBody()
     {
         return file_get_contents('php://input');
     }
 
+    /**
+     * @return string
+     */
     public function getQueryParams()
     {
 
     }
 
+    /**
+     * @param $name
+     * @param null $default
+     */
     public function getBodyParams($name, $default = null)
     {
 
     }
 
+    /**
+     * @param $name
+     * @param null $default
+     */
     public function post($name, $default = null)
     {
 
     }
 
+    /**
+     * @param $name
+     * @param $default
+     */
     public function get($name, $default)
     {
 

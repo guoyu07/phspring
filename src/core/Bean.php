@@ -28,7 +28,7 @@ class Bean
      */
     public function __set($name, $val)
     {
-        $setter = '' . $name;
+        $setter = 'set' . $name;
         if (method_exists($this, $setter)) {
             return $this->$setter($val);
         }
@@ -80,11 +80,18 @@ class Bean
         throw new \Exception('Unsetting an unknown or read-only property: ' . get_class($this) . '::' . $name);
     }
 
+    /**
+     * @param $name
+     * @param $arguments
+     */
     public function __call($name, $arguments)
     {
 
     }
 
+    /**
+     * clone trigger
+     */
     public function __clone()
     {
 
@@ -100,11 +107,17 @@ class Bean
         return property_exists($bean, $prop);
     }
 
+    /**
+     * @return bool
+     */
     public function canGetProp(): bool
     {
 
     }
 
+    /**
+     * @return bool
+     */
     public function canSetProp(): bool
     {
 

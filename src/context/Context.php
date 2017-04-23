@@ -8,7 +8,7 @@ namespace phspring\context;
  * Class Context
  * @package phspring\context
  */
-class Context extends AppContext
+class Context
 {
     /**
      * @var null
@@ -19,7 +19,7 @@ class Context extends AppContext
      */
     public $output = null;
     /**
-     * @var null logger
+     * @var \phspring\toolbox\log\Log
      */
     public $log = null;
     /**
@@ -30,6 +30,14 @@ class Context extends AppContext
      * @var string unique request id
      */
     public $uuid = '';
+
+    /**
+     * initialize
+     */
+    public function init()
+    {
+        $this->uuid = $this->genDistributedId();
+    }
 
     /**
      * @param $input \phspring\mvc\Input
@@ -56,10 +64,15 @@ class Context extends AppContext
     }
 
     /**
-     * gen context uuid
+     * gen a context uuid with 24 length.
      */
-    public function genUuid()
+    public function genDistributedId()
     {
-        $this->uuid = '';
+        $time = time() & 0xFFFFFFFF;
+        $machine = crc32(substr((string)gethostname(), 0, 256)) >> 8 & 0xFFFFFF;
+        $process = Ac::$appContext->pid & 0xFFFF;
+        $id = AppContext::$globalId = AppContext::$globalId > 0xFFFFFE ? 1 : AppContext::$globalId + 1;
+
+        return sprintf('%08x%06x%04x%06x', $time, $machine, $process, $id);
     }
 }

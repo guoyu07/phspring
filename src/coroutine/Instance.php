@@ -5,18 +5,18 @@
 namespace phspring\coroutine;
 
 /**
- * Class Null
+ * Class Instance
  * @package phspring\coroutine
  */
-class Null
+class Instance
 {
     /**
-     * @var Null
+     * @var Instance
      */
     private static $instance;
 
     /**
-     * Null constructor.
+     * Instance constructor.
      */
     public function __construct()
     {
@@ -24,12 +24,12 @@ class Null
     }
 
     /**
-     * @return Null|Null
+     * @return Instance
      */
-    public static function &getInstance()
+    public static function &get()
     {
         if (self::$instance == null) {
-            new Null();
+            new Instance();
         }
         return self::$instance;
     }

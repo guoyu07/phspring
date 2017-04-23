@@ -10,7 +10,7 @@ namespace phspring\net\pack;
  */
 interface IPack
 {
-    function pack($data);
+    function encode($data);
 
-    function unPack($data);
+    function decode($data);
 }

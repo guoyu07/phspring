@@ -57,7 +57,7 @@ abstract class Base implements IBase
             $this->timeout = self::$maxTimeout;
         }
 
-        $this->result = Null::getInstance();
+        $this->result = Instance::get();
         $this->requestTime = microtime(true);
     }
 

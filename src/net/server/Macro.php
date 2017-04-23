@@ -11,7 +11,7 @@ namespace phspring\net\server;
 class Macro
 {
     /**
-     * ;@var int
+     * @var int
      */
     const PHSPRING_CONNECT_FAIL = 1;
     /**
