@@ -24,7 +24,7 @@ class BeanFactory
     /**
      * request scope
      */
-    CONST SCOPE_REQUEST = 'request';
+    //CONST SCOPE_REQUEST = 'request';
     /**
      * pool scope
      */
@@ -61,7 +61,7 @@ class BeanFactory
         $this->beanPool = new BeanPool();
         $this->initBeans($beans);
     }
-    
+
     /**
      * init beans
      */
@@ -150,39 +150,28 @@ class BeanFactory
      */
     public function clearBean($name)
     {
-        unset($this->_beans[$name]);
+        if (isset($this->_beans[$name])) {
+            $scope = $this->_beans[$name]['scope'];
+            if ($scope == self::SCOPE_POOL) {
+                $this->beanPool->clear($name);
+            } elseif ($scope == self::SCOPE_SINGLETON) {
+                unset($this->_singletons[$name]);
+            }
+            unset($this->_beans[$name]);
+        }
     }
 
     /**
-     * @return bool
+     * @param $name
+     * @return false | string
      */
-    public function isSingleton($bean): bool
+    public function getScope($name)
     {
-        return $bean->scope === self::SCOPE_SINGLETON;
-    }
+        if (!isset($this->_beans[$name])) {
+            return false;
+        }
 
-    /**
-     * @return bool
-     */
-    public function isPrototype($bean): bool
-    {
-        return $bean->scope === self::SCOPE_PROTOTYPE;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRequest($bean): bool
-    {
-        return $bean->scope === self::SCOPE_REQUEST;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isPool($bean): bool
-    {
-        return $bean->scope === self::SCOPE_POOL;
+        return $this->_beans[$name]['scope'];
     }
 
     /**
@@ -221,19 +210,21 @@ class BeanFactory
     }
 
     /**
-     * @param string $class
-     * @param array $args
-     * @param mixed $config
+     * @param string $class Class name
+     * @param array $args Class construct parameters
+     * @param array $definition Class define parameters
+     * @return  Object
      */
     private function generate($class, $args, $definition)
     {
         /* @var $reflection ReflectionClass */
         list ($reflection, $refs) = $this->getRefs($class);
         $refs = $this->resolveRefs($refs, $reflection);
+
         $scope = $definition['scope'];
         if ($scope == self::SCOPE_POOL) {
             $clazz = $this->beanPool->get($class);
-        } elseif($scope === self::SCOPE_PROTOTYPE) {
+        } elseif ($scope === self::SCOPE_PROTOTYPE) {
             if (!$reflection->isInstantiable()) {
                 throw new \Exception($reflection->name);
             }
@@ -243,6 +234,7 @@ class BeanFactory
             }
             $clazz = $reflection->newInstanceArgs($refs);
         }
+
         if (!empty($definition)) {
             foreach ($definition as $prop => $val) {
                 $clazz->{$prop} = $val;

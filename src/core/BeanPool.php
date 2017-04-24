@@ -4,8 +4,6 @@
  */
 namespace phspring\core;
 
-use phspring\context\Ac;
-
 /**
  * Class BeanPool
  * @package phspring\core
@@ -13,26 +11,25 @@ use phspring\context\Ac;
 class BeanPool extends Bean
 {
     /**
-     * @var array
+     * @var array [class1 => [Stack1], class2 => [Stack2]]
      */
     private $_map = [];
 
     /**
-     * get one
-     * @param string $name
+     * get one object from pool
      * @param string $class
      * @return mixed
      */
-    public function get($name, $class)
+    public function get($class)
     {
-        $pool = $this->_map[$name] ?? null;
+        $pool = $this->_map[$class] ?? null;
         if ($pool === null) {
-            $pool = $this->genPool($name);
+            $pool = $this->genPool($class);
         }
         if ($pool->count() > 0) {
             return $pool->shift();
         } else {
-            $clazz = new $name();
+            $clazz = new $class();
             $clazz->useCount = 0;
             $clazz->genTime = time();
             return $clazz;
@@ -40,17 +37,27 @@ class BeanPool extends Bean
     }
 
     /**
-     * 返还一个对象
-     * @param string $beanId
+     * revert a object to pool
+     * @param string $class
      * @param Bean $clazz
      */
-    public function revert($name, Bean $clazz)
+    public function revert($class, Bean $clazz)
     {
-        $pool = $this->_map[$name] ?? null;
+        $pool = $this->_map[$class] ?? null;
         if ($pool === null) {
-            $pool = $this->genPool($name);
+            $pool = $this->genPool($class);
         }
         $pool->push($clazz);
+    }
+
+    /**
+     * @param string $class
+     */
+    public function clear($class)
+    {
+        if (isset($this->_map[$class])) {
+            unset($this->_map[$class]);
+        }
     }
 
     /**
@@ -58,13 +65,13 @@ class BeanPool extends Bean
      * @return mixed
      * @throws \Exception
      */
-    private function genPool($name)
+    private function genPool($class)
     {
-        if (array_key_exists($name, $this->_map)) {
+        if (array_key_exists($class, $this->_map)) {
             throw new \Exception('the name is exists in pool map');
         }
-        $this->_map[$name] = new \SplStack();
+        $this->_map[$class] = new \SplStack();
 
-        return $this->_map[$name];
+        return $this->_map[$class];
     }
 }
