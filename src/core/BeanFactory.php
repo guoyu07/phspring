@@ -4,7 +4,6 @@
  */
 namespace phspring\core;
 
-use phspring\context\Ac;
 use phspring\exception\InvalidConfigException;
 
 /**
@@ -192,8 +191,6 @@ class BeanFactory
                 throw new InvalidConfigException('Bean class attribute is required.');
             }
             return ['name' => $name, 'scope' => self::SCOPE_POOL, 'class' => $definition];
-        } elseif (is_object($definition)) {
-            return $definition;
         } elseif (is_array($definition)) {
             if (!isset($definition['class'])) {
                 if (strpos($name, '\\') === false) {
