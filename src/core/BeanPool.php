@@ -13,13 +13,9 @@ use phspring\context\Ac;
 class BeanPool extends Bean
 {
     /**
-     * @var string
-     */
-    public $scope = 'pool';
-    /**
      * @var array
      */
-    private $map = [];
+    private $_map = [];
 
     /**
      * get one
@@ -29,14 +25,14 @@ class BeanPool extends Bean
      */
     public function get($name, $class)
     {
-        $pool = $this->map[$name] ?? null;
+        $pool = $this->_map[$name] ?? null;
         if ($pool === null) {
             $pool = $this->genPool($name);
         }
         if ($pool->count() > 0) {
             return $pool->shift();
         } else {
-            $clazz = Ac::getBean($name);
+            $clazz = new $name();
             $clazz->useCount = 0;
             $clazz->genTime = time();
             return $clazz;
@@ -50,7 +46,7 @@ class BeanPool extends Bean
      */
     public function revert($name, Bean $clazz)
     {
-        $pool = $this->map[$name] ?? null;
+        $pool = $this->_map[$name] ?? null;
         if ($pool === null) {
             $pool = $this->genPool($name);
         }
@@ -64,11 +60,11 @@ class BeanPool extends Bean
      */
     private function genPool($name)
     {
-        if (array_key_exists($name, $this->map)) {
+        if (array_key_exists($name, $this->_map)) {
             throw new \Exception('the name is exists in pool map');
         }
-        $this->map[$name] = new \SplStack();
+        $this->_map[$name] = new \SplStack();
 
-        return $this->map[$name];
+        return $this->_map[$name];
     }
 }

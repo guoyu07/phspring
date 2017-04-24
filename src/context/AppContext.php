@@ -47,8 +47,9 @@ class AppContext extends BeanFactory
      */
     public function __construct($configPath)
     {
-        $this->setPid();
         $this->setConfig($configPath);
+        parent::__construct($this->config->get('beans', []));
+        $this->setPid();
         $this->setI18n();
         $this->setPacker();
     }
