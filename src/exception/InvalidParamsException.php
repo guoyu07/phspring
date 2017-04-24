@@ -13,8 +13,8 @@ class InvalidParamsException extends \ErrorException
 
     /**
      * InvalidParamsException constructor.
-     * @param string $message.
-     * @param integer $code.
+     * @param string $message .
+     * @param integer $code .
      */
     public function __construct($message, $code)
     {

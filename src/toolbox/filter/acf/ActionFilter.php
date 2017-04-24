@@ -45,6 +45,6 @@ class ActionFilter
             }
         }
 
-        return ! $exceptMatch && $onlyMatch;
+        return !$exceptMatch && $onlyMatch;
     }
 }

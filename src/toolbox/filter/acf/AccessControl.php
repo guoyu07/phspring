@@ -102,7 +102,7 @@ class AccessControl extends ActionFilter
         $method = $request->method;
 
         // 判断配置中设置的 only/except 属性中的 [method,...] 是否应用于当前 method.
-        if (! $this->isActive($method)) {
+        if (!$this->isActive($method)) {
             return true; // 当前 method 未被激活直接返回验证成功.
         }
 

@@ -586,7 +586,8 @@ class Tcp extends Connection
         if ($this->maxSendBufferSize <= strlen($this->sendBuffer)) {
             if ($this->onError) {
                 try {
-                    call_user_func($this->onError, $this, Macro::PHSPRING_SEND_FAIL, 'send buffer full and drop package');
+                    call_user_func($this->onError, $this, Macro::PHSPRING_SEND_FAIL,
+                        'send buffer full and drop package');
                 } catch (\Exception $e) {
                     ProcessUtil::log($e);
                     exit(250);

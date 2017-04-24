@@ -2,19 +2,22 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\db\cache;
+namespace phspring\cache;
 
 /**
- * Interface ICache
- * @package phspring\db\cache
+ * Class Redis
+ * @package phspring\cache
  */
-Interface ICache
+class Redis extends Cache implements ICache
 {
     /**
      * @param $key
      * @return mixed
      */
-    public function get($key);
+    public function get($key)
+    {
+
+    }
 
     /**
      * @param $key
@@ -22,28 +25,43 @@ Interface ICache
      * @param int $expire
      * @return mixed
      */
-    public function set($key, $value, $expire = 0);
+    public function set($key, $value, $expire = 0)
+    {
+
+    }
 
     /**
      * @param $key
      * @return mixed
      */
-    public function mget(array $keys);
+    public function mget(array $keys)
+    {
+
+    }
 
     /**
      * @param array $elements
      * @return mixed
      */
-    public function mset(array $elements);
+    public function mset(array $elements)
+    {
+
+    }
 
     /**
      * @param $key
      * @return mixed
      */
-    public function delete($key);
+    public function delete($key)
+    {
+
+    }
 
     /**
      * @return mixed
      */
-    public function flush();
+    public function flush()
+    {
+
+    }
 }

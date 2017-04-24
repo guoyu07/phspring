@@ -2,13 +2,13 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\db\cache;
+namespace phspring\cache;
 
 use phspring\core\Bean;
 
 /**
  * class Cache
- * @package phspring\db\cache
+ * @package phspring\cache
  */
 abstract class Cache extends Bean implements ICache
 {

@@ -13,8 +13,8 @@ class BusinessException extends \Exception
 
     /**
      * BusinessException constructor.
-     * @param string $message.
-     * @param integer $code.
+     * @param string $message .
+     * @param integer $code .
      */
     public function __construct($message, $code = 0)
     {

@@ -2,32 +2,49 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\db\cache;
+namespace phspring\cache;
 
 /**
- * Class Redis
- * @package phspring\db\cache
+ * Class Memcached
+ * @package phspring\cache
  */
-class Redis extends Cache implements ICache
+class Memcached extends Cache implements ICache
 {
     /**
-     * @param $key
-     * @return mixed
+     * @var array
      */
-    public function get($key)
+    public $servers = [];
+
+    /**
+     * init
+     */
+    public function init()
     {
 
     }
 
     /**
      * @param $key
+     * @return mixed
+     */
+    public function get($key)
+    {
+        $key = $this->buildKey($key);
+
+        return $this->_cache->get($key);
+    }
+
+    /**
+     * @param $key
      * @param $value
      * @param int $expire
-     * @return mixed
+     * @return bool
      */
     public function set($key, $value, $expire = 0)
     {
+        $key = $this->buildKey($key);
 
+        return $this->_cache->set($key, $value, $expire);
     }
 
     /**
@@ -36,7 +53,9 @@ class Redis extends Cache implements ICache
      */
     public function mget(array $keys)
     {
-
+        foreach ($keys as &$key) {
+            $key = $this->buildKey($key);
+        }
     }
 
     /**

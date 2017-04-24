@@ -31,6 +31,7 @@ class Scheduler
     public function __construct()
     {
         $this->taskQueue = new \SplQueue();
+
         swoole_timer_tick(1, function ($timerId) {
             $this->run();
         });

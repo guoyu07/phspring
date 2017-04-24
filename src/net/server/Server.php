@@ -74,7 +74,7 @@ class Server extends Worker
     public function onWorkerStart()
     {
         if (empty($this->serverRoot)) {
-            echo new \Exception('server root not set, please use WebServer::addRoot($domain, $root_path) to set server root path');
+            throw new \Exception('server root not set, please use WebServer::addRoot($domain, $root_path) to set server root path');
             exit(250);
         }
 
@@ -221,10 +221,10 @@ class Server extends Worker
     {
         // Check 304.
         $info = stat($filePath);
-        $modified_time = $info ? date('D, d M Y H:i:s', $info['mtime']) . ' ' . date_default_timezone_get() : '';
+        $modifiedTime = $info ? date('D, d M Y H:i:s', $info['mtime']) . ' ' . date_default_timezone_get() : '';
         if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $info) {
             // Http 304.
-            if ($modified_time === $_SERVER['HTTP_IF_MODIFIED_SINCE']) {
+            if ($modifiedTime === $_SERVER['HTTP_IF_MODIFIED_SINCE']) {
                 // 304
                 Http::header('HTTP/1.1 304 Not Modified');
                 // Send nothing but http headers..
@@ -234,8 +234,8 @@ class Server extends Worker
         }
 
         // Http header.
-        if ($modified_time) {
-            $modified_time = "Last-Modified: $modified_time\r\n";
+        if ($modifiedTime) {
+            $modifiedTime = "Last-Modified: $modifiedTime\r\n";
         }
         $fileSize = filesize($filePath);
         $fileInfo = pathinfo($filePath);
@@ -249,7 +249,7 @@ class Server extends Worker
             $header .= "Content-Disposition: attachment; filename=\"$fileName\"\r\n";
         }
         $header .= "Connection: keep-alive\r\n";
-        $header .= $modified_time;
+        $header .= $modifiedTime;
         $header .= "Content-Length: $fileSize\r\n\r\n";
         $trunk_limit_size = 1024 * 1024;
         if ($fileSize < $trunk_limit_size) {

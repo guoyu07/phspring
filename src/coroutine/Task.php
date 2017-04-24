@@ -123,15 +123,15 @@ class Task
     public function handleTaskTimeout(\Exception $e, $value)
     {
         if ($value != '') {
-            $logValue = '';
-            dumpCoroutineTaskMessage($logValue, $value, 0);
-            $message = 'Yield ' . $logValue . ' message: ' . $e->getMessage();
+            $log = '';
+            dumpCoroutineTaskMessage($log, $value, 0);
+            $message = 'Yield ' . $log . ' message: ' . $e->getMessage();
         } else {
-            $message = 'message: ' . $e->getMessage();
+            $message = 'Message: ' . $e->getMessage();
         }
 
         $runTaskException = new CoroutineException($message, $e->getCode(), $e);
-        $this->coroutineContext->setStackMessage($this->routine->key());
+        $this->coroutineContext->getTraceStack($this->routine->key());
         $this->coroutineContext->setErrorFile($e->getFile(), $e->getLine());
         $this->coroutineContext->setErrorMessage($message);
 
