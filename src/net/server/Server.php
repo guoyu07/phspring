@@ -239,8 +239,8 @@ class Server extends Worker
         }
         $fileSize = filesize($filePath);
         $fileInfo = pathinfo($filePath);
-        $extension = isset($fileInfo['extension']) ? $fileInfo['extension'] : '';
-        $fileName = isset($fileInfo['filename']) ? $fileInfo['filename'] : '';
+        $extension = $fileInfo['extension'] ?? '';
+        $fileName = $fileInfo['filename'] ?? '';
         $header = "HTTP/1.1 200 OK\r\n";
         if (isset(self::$mimeTypeMap[$extension])) {
             $header .= "Content-Type: " . self::$mimeTypeMap[$extension] . "\r\n";

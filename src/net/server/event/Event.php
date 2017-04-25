@@ -93,10 +93,8 @@ class Event implements IEvent
     public function del($fd, $flag)
     {
         switch ($flag) {
-
             case self::EV_READ:
             case self::EV_WRITE:
-
                 $fdKey = (int)$fd;
                 if (isset($this->allEvents[$fdKey][$flag])) {
                     $this->allEvents[$fdKey][$flag]->del();
@@ -106,7 +104,6 @@ class Event implements IEvent
                     unset($this->allEvents[$fdKey]);
                 }
                 break;
-
             case  self::EV_SIGNAL:
                 $fdKey = (int)$fd;
                 if (isset($this->eventSignal[$fdKey])) {
@@ -114,7 +111,6 @@ class Event implements IEvent
                     unset($this->eventSignal[$fdKey]);
                 }
                 break;
-
             case self::EV_TIMER:
             case self::EV_TIMER_ONCE:
                 if (isset($this->eventTimer[$fd])) {
@@ -123,6 +119,7 @@ class Event implements IEvent
                 }
                 break;
         }
+
         return true;
     }
 
@@ -143,10 +140,7 @@ class Event implements IEvent
 
         try {
             call_user_func_array($param[0], $param[1]);
-        } catch (\Exception $e) {
-            ProcessUtil::log($e);
-            exit(250);
-        } catch (\Error $e) {
+        } catch (\Exception|\Error $e) {
             ProcessUtil::log($e);
             exit(250);
         }

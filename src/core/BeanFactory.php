@@ -35,7 +35,7 @@ class BeanFactory
     public $beanPool = null;
 
     /**
-     * @var array
+     * @var array [name1 => ['class' => '\\a\\b', 'scope' => 'pool', 'prop1' => 1]]
      */
     private $_beans = [];
     /**

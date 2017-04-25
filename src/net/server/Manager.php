@@ -22,71 +22,74 @@ class Manager
      * @var string
      */
     public static $stdoutFile = '/dev/null';
-
     /**
-     * The PID of manager process.
      * @var int
      */
     protected static $managerPid = 0;
     /**
-     * The file path to store manager process PID.
      * @var string
      */
     public static $managerPidPath = '';
-
     /**
-     * Global event loop.
      * @var event\IEvent
      */
-    public static $globalEvent = null;
+    public static $event = null;
     /**
-     * EventLoopClass
      * @var string
      */
     public static $eventLoop = '';
     /**
-     * Emitted when the manager process get reload signal.
      * @var callback
      */
     public static $onManagerReload = null;
     /**
-     * Emitted when the manager process terminated.
      * @var callback
      */
     public static $onManagerStop = null;
     /**
-     * All worker instances.
+     * @var array <Worker, Worker, ...>
+     */
+    public static $workers = [];
+    /**
+     * The format is like this
+     * [
+     *     workerId => [
+     *         pid1 => pid1,
+     *         pid2 => pid2,
+     *     ],
+     * ]
      * @var array
      */
-    protected static $workers = [];
+    public static $workerPidMap = [];
     /**
-     * All worker porcesses pid.
-     * The format is like this [workerId=>[pid=>pid, pid=>pid, ..], ..]
+     * The format is like this
+     * [
+     *     pid1 => pid1,
+     *     pid2 => pid2
+     * ].
      * @var array
      */
-    protected static $workerPidMap = [];
+    public static $pidsForReload = [];
     /**
-     * All worker processes waiting for restart.
-     * The format is like this [pid=>pid, pid=>pid].
+     * The format is like this
+     * [
+     *     workerId => [
+     *         pid1,
+     *         pid2,
+     *     ],
+     * ]
      * @var array
      */
-    protected static $pidsToRestart = [];
+    public static $wokerPids = [];
+
     /**
-     * Mapping from PID to worker process ID.
-     * The format is like this [workerId=>[0=>$pid, 1=>$pid, ..], ..].
-     * @var array
-     */
-    protected static $idMap = [];
-    /**
-     * Current status.
      * @var int
      */
-    protected static $status = self::STATUS_STARTING;
+    public static $status = Macro::STATUS_STARTING;
     /**
-     * PHP built-in protocols.
      * @var array
      */
-    protected static $builtinTransports = [
+    public static $builtinTransports = [
         'tcp' => 'tcp',
         'udp' => 'udp',
         'unix' => 'unix',
@@ -112,6 +115,69 @@ class Manager
     }
 
     /**
+     * Get the event loop instance.
+     * @return IEvent
+     */
+    public static function getEvent()
+    {
+        return self::$event;
+    }
+
+    /**
+     * @param int $signal
+     */
+    public static function signalHandler($signal)
+    {
+        switch ($signal) {
+            // Stop.
+            case SIGINT:
+                self::stopAll();
+                break;
+            // Reload.
+            case SIGUSR1:
+                self::$pidsForReload = self::getAllWorkerPids();
+                self::reload();
+                break;
+            // Show status.
+            case SIGUSR2:
+                ProcessUtil::writeStatisticsToStatusFile();
+                break;
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public static function getAllWorkers()
+    {
+        return self::$workers;
+    }
+
+    /**
+     * Stop.
+     * @return void
+     */
+    public static function stopAll()
+    {
+        self::$status = self::STATUS_SHUTDOWN;
+        // For manager process.
+        if (self::$managerPid === posix_getpid()) {
+            ProcessUtil::log('phspring[' . basename(self::$startFile) . '] stopping ...');
+            $pids = self::getAllWorkerPids();
+            foreach ($pids as $pid) {
+                posix_kill($pid, SIGINT);
+                Timer::add(self::KILL_WORKER_TIMER_TIME, 'posix_kill', [$pid, SIGKILL], false);
+            }
+        } else { // For child processes.
+            foreach (self::$workers as $worker) {
+                $worker->stop();
+            }
+            self::$event->destroy();
+            exit(0);
+        }
+    }
+
+    /**
      * preRun.
      * @return void
      */
@@ -134,39 +200,45 @@ class Manager
     }
 
     /**
-     * Init All worker instances.
+     * @return void
+     */
+    public static function checkErrors()
+    {
+        if (self::STATUS_SHUTDOWN != self::$status) {
+            $errMsg = 'WORKER EXIT UNEXPECTED ';
+            $errors = error_get_last();
+            if ($errors && ($errors['type'] === E_ERROR ||
+                    $errors['type'] === E_PARSE ||
+                    $errors['type'] === E_CORE_ERROR ||
+                    $errors['type'] === E_COMPILE_ERROR ||
+                    $errors['type'] === E_RECOVERABLE_ERROR)
+            ) {
+                $errMsg .= ProcessUtil::getErrorType($errors['type']) . " {$errors['message']} in {$errors['file']} on line {$errors['line']}";
+            }
+            self::log($errMsg);
+        }
+    }
+
+    /**
      * @return void
      */
     protected static function initWorkers()
     {
         foreach (self::$workers as $worker) {
-            // Worker name.
             if (empty($worker->name)) {
-                $worker->name = 'none';
+                $worker->name = 'nobody';
             }
-            // Get unix user of the worker process.
             if (empty($worker->user)) {
-                $worker->user = ProcessUtil::getCurrentUserName();
+                $worker->user = ProcessUtil::getUserName();
             } else {
-                if (posix_getuid() !== 0 && $worker->user != ProcessUtil::getCurrentUserName()) {
-                    echo 'Warning: You must have the root privileges to change uid and gid.';
+                if (posix_getuid() !== 0 && $worker->user != ProcessUtil::getUserName()) {
+                    echo 'Warning: You must have the root privileges to change the uid or gid.';
                 }
             }
-            // Listen.
             if (!$worker->reusePort) {
                 $worker->listen();
             }
         }
-    }
-
-    /**
-     * Get global event-loop instance.
-     *
-     * @return IEvent
-     */
-    public static function getEventLoop()
-    {
-        return self::$globalEvent;
     }
 
     /**
@@ -176,56 +248,23 @@ class Manager
     protected static function initId()
     {
         foreach (self::$workers as $workerId => $worker) {
-            $newIdMap = [];
-            for ($key = 0; $key < $worker->count; $key++) {
-                $newIdMap[$key] = isset(self::$idMap[$workerId][$key]) ? self::$idMap[$workerId][$key] : 0;
+            $ids = [];
+            for ($i = 0; $i < $worker->count; $i++) {
+                $ids[$i] = self::$wokerPids[$workerId][$i] ?? 0;
             }
-            self::$idMap[$workerId] = $newIdMap;
+            self::$wokerPids[$workerId] = $ids;
         }
     }
 
     /**
-     * Signal handler.
-     * @param int $signal
-     */
-    public static function signalHandler($signal)
-    {
-        switch ($signal) {
-            // Stop.
-            case SIGINT:
-                self::stopAll();
-                break;
-            // Reload.
-            case SIGUSR1:
-                self::$pidsToRestart = self::getAllWorkerPids();
-                self::reload();
-                break;
-            // Show status.
-            case SIGUSR2:
-                ProcessUtil::writeStatisticsToStatusFile();
-                break;
-        }
-    }
-
-    /**
-     * Get all worker instances.
-     * @return array
-     */
-    public static function getAllWorkers()
-    {
-        return self::$workers;
-    }
-
-    /**
-     * Get all pids of worker processes.
      * @return array
      */
     protected static function getAllWorkerPids()
     {
         $pids = [];
         foreach (self::$workerPidMap as $pids) {
-            foreach ($pids as $workId) {
-                $pids[$workId] = $workId;
+            foreach ($pids as $pid) {
+                $pids[$pid] = $pid;
             }
         }
 
@@ -233,13 +272,13 @@ class Manager
     }
 
     /**
-     * Fork some worker processes.
      * @return void
      */
     protected static function forkWorkers()
     {
+        /* @var $worker Worker */
         foreach (self::$workers as $worker) {
-            if (self::$status === self::STATUS_STARTING) {
+            if (self::$status === Macro::STATUS_STARTING) {
                 if (empty($worker->name)) {
                     $worker->name = $worker->getSocketName();
                 }
@@ -253,23 +292,22 @@ class Manager
     }
 
     /**
-     * Fork one worker process.
      * @param Worker $worker
      * @throws Exception
      */
     protected static function forkWorker($worker)
     {
-        // Get available worker id.
         $id = self::getId($worker->workerId, 0);
         if ($id === false) {
             return;
         }
+
         $pid = pcntl_fork();
-        // For manager process.
+        // manager process.
         if ($pid > 0) {
             self::$workerPidMap[$worker->workerId][$pid] = $pid;
-            self::$idMap[$worker->workerId][$id] = $pid;
-        } elseif (0 === $pid) { // For child processes.
+            self::$wokerPids[$worker->workerId][$id] = $pid;
+        } elseif (0 === $pid) { // child processes.
             if ($worker->reusePort) {
                 $worker->listen();
             }
@@ -294,82 +332,15 @@ class Manager
     }
 
     /**
-     * Get worker id.
      * @param int $workerId
      * @param int $pid
      */
     protected static function getId($workerId, $pid)
     {
-        return array_search($pid, self::$idMap[$workerId]);
+        return array_search($pid, self::$wokerPids[$workerId]);
     }
 
     /**
-     * Monitor all child processes.
-     * @return void
-     */
-    protected static function monitorWorkers()
-    {
-        self::$status = self::STATUS_RUNNING;
-        while (1) {
-            // Calls signal handlers for pending signals.
-            pcntl_signal_dispatch();
-            // Suspends execution of the current process until a child has exited, or until a signal is delivered
-            $status = 0;
-            $pid = pcntl_wait($status, WUNTRACED);
-            // Calls signal handlers for pending signals again.
-            pcntl_signal_dispatch();
-            // If a child has already exited.
-            if ($pid > 0) {
-                // Find out witch worker process exited.
-                foreach (self::$workerPidMap as $workerId => $workerPids) {
-                    if (isset($workerPids[$pid])) {
-                        $worker = self::$workers[$workerId];
-                        // Exit status.
-                        if ($status !== 0) {
-                            self::log("worker[" . $worker->name . ":$pid] exit with status $status");
-                        }
-
-                        // For Statistics.
-                        if (!isset(self::$globalStatistics['worker_exit_info'][$workerId][$status])) {
-                            self::$globalStatistics['worker_exit_info'][$workerId][$status] = 0;
-                        }
-                        self::$globalStatistics['worker_exit_info'][$workerId][$status]++;
-
-                        // Clear process data.
-                        unset(self::$workerPidMap[$workerId][$pid]);
-
-                        // Mark id is available.
-                        $id = self::getId($workerId, $pid);
-                        self::$idMap[$workerId][$id] = 0;
-
-                        break;
-                    }
-                }
-                // Is still running state then fork a new worker process.
-                if (self::$status !== self::STATUS_SHUTDOWN) {
-                    self::forkWorkers();
-                    // If reloading continue.
-                    if (isset(self::$pidsToRestart[$pid])) {
-                        unset(self::$pidsToRestart[$pid]);
-                        self::reload();
-                    }
-                } else {
-                    // If shutdown state and all child processes exited then manager process exit.
-                    if (!self::getAllWorkerPids()) {
-                        self::exitAndDestoryAll();
-                    }
-                }
-            } else {
-                // If shutdown state and all child processes exited then manager process exit.
-                if (self::$status === self::STATUS_SHUTDOWN && !self::getAllWorkerPids()) {
-                    self::exitAndDestoryAll();
-                }
-            }
-        }
-    }
-
-    /**
-     * Exit current process.
      * @return void
      */
     protected static function exitAndDestoryAll()
@@ -391,25 +362,19 @@ class Manager
     }
 
     /**
-     * Execute reload.
      * @return void
      */
     protected static function reload()
     {
         // For manager process.
         if (self::$managerPid === posix_getpid()) {
-            // Set reloading state.
             if (self::$status !== self::STATUS_RELOADING && self::$status !== self::STATUS_SHUTDOWN) {
-                self::log("Workerman[" . basename(self::$startFile) . "] reloading");
+                self::log("PhSpring[" . basename(self::$startFile) . "] reloading");
                 self::$status = self::STATUS_RELOADING;
-                // Try to emit onManagerReload callback.
                 if (self::$onManagerReload) {
                     try {
                         call_user_func(self::$onManagerReload);
-                    } catch (\Exception $e) {
-                        self::log($e);
-                        exit(250);
-                    } catch (\Error $e) {
+                    } catch (\Exception|\Error $e) {
                         self::log($e);
                         exit(250);
                     }
@@ -417,48 +382,38 @@ class Manager
                 }
             }
 
-            // Send reload signal to all child processes.
-            $reloadable_pid_array = [];
-            foreach (self::$workerPidMap as $workerId => $workerPids) {
+            $pidsReloadable = [];
+            foreach (self::$workerPidMap as $workerId => $pids) {
+                /* @var $worker Worker */
                 $worker = self::$workers[$workerId];
                 if ($worker->reloadable) {
-                    foreach ($workerPids as $pid) {
-                        $reloadable_pid_array[$pid] = $pid;
+                    foreach ($pids as $pid) {
+                        $pidsReloadable[$pid] = $pid;
                     }
                 } else {
-                    foreach ($workerPids as $pid) {
-                        // Send reload signal to a worker process which reloadable is false.
+                    foreach ($pids as $pid) {
                         posix_kill($pid, SIGUSR1);
                     }
                 }
             }
 
-            // Get all pids that are waiting reload.
-            self::$pidsToRestart = array_intersect(self::$pidsToRestart, $reloadable_pid_array);
+            self::$pidsForReload = array_intersect(self::$pidsForReload, $pidsReloadable);
 
-            // Reload complete.
-            if (empty(self::$pidsToRestart)) {
+            if (empty(self::$pidsForReload)) {
                 if (self::$status !== self::STATUS_SHUTDOWN) {
                     self::$status = self::STATUS_RUNNING;
                 }
                 return;
             }
-            // Continue reload.
-            $one_worker_pid = current(self::$pidsToRestart);
-            // Send reload signal to a worker process.
-            posix_kill($one_worker_pid, SIGUSR1);
-            // If the process does not exit after self::KILL_WORKER_TIMER_TIME seconds try to kill it.
-            Timer::add(self::KILL_WORKER_TIMER_TIME, 'posix_kill', [$one_worker_pid, SIGKILL], false);
+            $currentPid = current(self::$pidsForReload);
+            posix_kill($currentPid, SIGUSR1);
+            Timer::add(self::KILL_WORKER_TIMER_TIME, 'posix_kill', [$currentPid, SIGKILL], false);
         } else { // For child processes.
             $worker = current(self::$workers);
-            // Try to emit onWorkerReload callback.
             if ($worker->onWorkerReload) {
                 try {
                     call_user_func($worker->onWorkerReload, $worker);
-                } catch (\Exception $e) {
-                    self::log($e);
-                    exit(250);
-                } catch (\Error $e) {
+                } catch (\Exception|\Error $e) {
                     self::log($e);
                     exit(250);
                 }
@@ -471,49 +426,53 @@ class Manager
     }
 
     /**
-     * Stop.
      * @return void
      */
-    public static function stopAll()
+    protected static function monitorWorkers()
     {
-        self::$status = self::STATUS_SHUTDOWN;
-        // For manager process.
-        if (self::$managerPid === posix_getpid()) {
-            self::log("Workerman[" . basename(self::$startFile) . "] Stopping ...");
-            $workerPids = self::getAllWorkerPids();
-            // Send stop signal to all child processes.
-            foreach ($workerPids as $workerPid) {
-                posix_kill($workerPid, SIGINT);
-                Timer::add(self::KILL_WORKER_TIMER_TIME, 'posix_kill', [$workerPid, SIGKILL], false);
-            }
-        } else { // For child processes.
-            // Execute exit.
-            foreach (self::$workers as $worker) {
-                $worker->stop();
-            }
-            self::$globalEvent->destroy();
-            exit(0);
-        }
-    }
+        self::$status = self::STATUS_RUNNING;
+        while (1) {
+            pcntl_signal_dispatch();
+            $status = 0;
+            $pid = pcntl_wait($status, WUNTRACED);
+            pcntl_signal_dispatch();
+            if ($pid > 0) {
+                foreach (self::$workerPidMap as $workerId => $pids) {
+                    if (isset($pids[$pid])) {
+                        $worker = self::$workers[$workerId];
+                        if ($status !== 0) {
+                            self::log("worker[" . $worker->name . ":$pid] exit with status $status");
+                        }
 
-    /**
-     * Check errors when current process exited.
-     * @return void
-     */
-    public static function checkErrors()
-    {
-        if (self::STATUS_SHUTDOWN != self::$status) {
-            $errMsg = "WORKER EXIT UNEXPECTED ";
-            $errors = error_get_last();
-            if ($errors && ($errors['type'] === E_ERROR ||
-                    $errors['type'] === E_PARSE ||
-                    $errors['type'] === E_CORE_ERROR ||
-                    $errors['type'] === E_COMPILE_ERROR ||
-                    $errors['type'] === E_RECOVERABLE_ERROR)
-            ) {
-                $errMsg .= ProcessUtil::getErrorType($errors['type']) . " {$errors['message']} in {$errors['file']} on line {$errors['line']}";
+                        if (!isset(self::$globalStatistics['worker_exit_info'][$workerId][$status])) {
+                            self::$globalStatistics['worker_exit_info'][$workerId][$status] = 0;
+                        }
+                        self::$globalStatistics['worker_exit_info'][$workerId][$status]++;
+
+                        unset(self::$workerPidMap[$workerId][$pid]);
+
+                        $id = self::getId($workerId, $pid);
+                        self::$wokerPids[$workerId][$id] = 0;
+
+                        break;
+                    }
+                }
+                if (self::$status !== self::STATUS_SHUTDOWN) {
+                    self::forkWorkers();
+                    if (isset(self::$pidsForReload[$pid])) {
+                        unset(self::$pidsForReload[$pid]);
+                        self::reload();
+                    }
+                } else {
+                    if (!self::getAllWorkerPids()) {
+                        self::exitAndDestoryAll();
+                    }
+                }
+            } else {
+                if (self::$status === self::STATUS_SHUTDOWN && !self::getAllWorkerPids()) {
+                    self::exitAndDestoryAll();
+                }
             }
-            self::log($errMsg);
         }
     }
 }

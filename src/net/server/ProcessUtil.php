@@ -245,11 +245,9 @@ class ProcessUtil
      * Get unix user of current porcess.
      * @return string
      */
-    public static function getCurrentUserName()
+    public static function getUserName()
     {
-        $user = posix_getpwuid(posix_getuid());
-
-        return $user['name'];
+        return posix_getpwuid(posix_getuid())['name'];
     }
 
     /**
@@ -451,8 +449,8 @@ class ProcessUtil
 
             chmod(self::$statisticsFile, 0722);
 
-            foreach (self::getAllWorkerPids() as $workerPid) {
-                posix_kill($workerPid, SIGUSR2);
+            foreach (self::getAllWorkerPids() as $pid) {
+                posix_kill($pid, SIGUSR2);
             }
             return;
         }

@@ -44,19 +44,20 @@ class Ac
      * @param array $params
      * @return mixed
      */
-    public static function getBean($name, array $params = [])
+    public static function getBean($name, array $args = [], $definition)
     {
-        return self::$appContext->getBean($name, $params);
+        return self::$appContext->getBean($name, $args, $definition);
     }
 
     /**
+     * translate message
      * @param $category
      * @param $message
      * @param $params
      * @param $language
      * @return mixed
      */
-    public static function t($category, $message, $params, $language)
+    public static function trans($category, $message, $params, $language)
     {
         return self::$appContext->i18n->translate($category, $message, $params, $language);
     }

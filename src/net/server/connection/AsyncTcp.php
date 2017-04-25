@@ -158,7 +158,7 @@ class AsyncTcp extends Tcp
             return;
         }
         // Add socket to global event loop waiting connection is successfully established or faild.
-        Manager::$globalEvent->add($this->socket, IEvent::EV_WRITE, [$this, 'checkConnection']);
+        Manager::$event->add($this->socket, IEvent::EV_WRITE, [$this, 'checkConnection']);
     }
 
     /**
@@ -235,7 +235,7 @@ class AsyncTcp extends Tcp
         // Check socket state.
         if ($address = stream_socket_get_name($socket, true)) {
             // Remove write listener.
-            Manager::$globalEvent->del($socket, IEvent::EV_WRITE);
+            Manager::$event->del($socket, IEvent::EV_WRITE);
             // Nonblocking.
             stream_set_blocking($socket, 0);
             // Compatible with hhvm
@@ -249,10 +249,10 @@ class AsyncTcp extends Tcp
                 socket_set_option($raw_socket, SOL_TCP, TCP_NODELAY, 1);
             }
             // Register a listener waiting read event.
-            Manager::$globalEvent->add($socket, IEvent::EV_READ, [$this, 'baseRead']);
+            Manager::$event->add($socket, IEvent::EV_READ, [$this, 'baseRead']);
             // There are some data waiting to send.
             if ($this->sendBuffer) {
-                Manager::$globalEvent->add($socket, IEvent::EV_WRITE, [$this, 'baseWrite']);
+                Manager::$event->add($socket, IEvent::EV_WRITE, [$this, 'baseWrite']);
             }
             $this->status = self::STATUS_ESTABLISH;
             $this->remoteAddress = $address;

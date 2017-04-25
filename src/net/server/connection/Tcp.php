@@ -174,7 +174,7 @@ class Tcp extends Connection
         if (function_exists('stream_set_read_buffer')) {
             stream_set_read_buffer($this->socket, 0);
         }
-        Manager::$globalEvent->add($this->socket, IEvent::EV_READ, [$this, 'baseRead']);
+        Manager::$event->add($this->socket, IEvent::EV_READ, [$this, 'baseRead']);
         $this->maxSendBufferSize = self::$defaultMaxSendBufferSize;
         $this->remoteAddress = $remoteAddress;
     }
@@ -245,7 +245,7 @@ class Tcp extends Connection
                 }
                 $this->sendBuffer = $sendBuffer;
             }
-            Manager::$globalEvent->add($this->socket, IEvent::EV_WRITE, [$this, 'baseWrite']);
+            Manager::$event->add($this->socket, IEvent::EV_WRITE, [$this, 'baseWrite']);
             // Check if the send buffer will be full.
             $this->checkBufferWillFull();
             return null;
@@ -297,7 +297,7 @@ class Tcp extends Connection
      */
     public function pauseRecv()
     {
-        Manager::$globalEvent->del($this->socket, IEvent::EV_READ);
+        Manager::$event->del($this->socket, IEvent::EV_READ);
         $this->isPaused = true;
     }
 
@@ -309,7 +309,7 @@ class Tcp extends Connection
     public function resumeRecv()
     {
         if ($this->isPaused === true) {
-            Manager::$globalEvent->add($this->socket, IEvent::EV_READ, [$this, 'baseRead']);
+            Manager::$event->add($this->socket, IEvent::EV_READ, [$this, 'baseRead']);
             $this->isPaused = false;
             $this->baseRead($this->socket, false);
         }
@@ -351,7 +351,7 @@ class Tcp extends Connection
             }
             $this->sslHandshakeCompleted = true;
             if ($this->sendBuffer) {
-                Manager::$globalEvent->add($socket, IEvent::EV_WRITE, [$this, 'baseWrite']);
+                Manager::$event->add($socket, IEvent::EV_WRITE, [$this, 'baseWrite']);
             }
             return;
         }
@@ -460,7 +460,7 @@ class Tcp extends Connection
     {
         $len = @fwrite($this->socket, $this->sendBuffer);
         if ($len === strlen($this->sendBuffer)) {
-            Manager::$globalEvent->del($this->socket, IEvent::EV_WRITE);
+            Manager::$event->del($this->socket, IEvent::EV_WRITE);
             $this->sendBuffer = '';
             // Try to emit onBufferDrain callback when the send buffer becomes empty.
             if ($this->onBufferDrain) {
@@ -613,8 +613,8 @@ class Tcp extends Connection
             return;
         }
         // Remove event listener.
-        Manager::$globalEvent->del($this->socket, IEvent::EV_READ);
-        Manager::$globalEvent->del($this->socket, IEvent::EV_WRITE);
+        Manager::$event->del($this->socket, IEvent::EV_READ);
+        Manager::$event->del($this->socket, IEvent::EV_WRITE);
         // Close socket.
         @fclose($this->socket);
         // Remove from worker->connections.
