@@ -20,21 +20,18 @@ class Udp
 
     /**
      * Udp socket.
-     *
      * @var resource
      */
     protected $socket = null;
 
     /**
      * Remote address.
-     *
      * @var string
      */
     protected $remoteAddress = '';
 
     /**
      * Construct.
-     *
      * @param resource $socket
      * @param string $remote_address
      */
@@ -46,7 +43,6 @@ class Udp
 
     /**
      * Sends data on the connection.
-     *
      * @param string $send_buffer
      * @param bool $raw
      * @return void|boolean
@@ -66,7 +62,6 @@ class Udp
 
     /**
      * Get remote IP.
-     *
      * @return string
      */
     public function getRemoteIp()
@@ -80,7 +75,6 @@ class Udp
 
     /**
      * Get remote port.
-     *
      * @return int
      */
     public function getRemotePort()
@@ -94,7 +88,6 @@ class Udp
 
     /**
      * Close connection.
-     *
      * @param mixed $data
      * @param bool $raw
      * @return bool

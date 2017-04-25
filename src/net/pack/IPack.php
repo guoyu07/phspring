@@ -10,7 +10,15 @@ namespace phspring\net\pack;
  */
 interface IPack
 {
+    /**
+     * @param $data
+     * @return mixed
+     */
     function encode($data);
 
+    /**
+     * @param $data
+     * @return mixed
+     */
     function decode($data);
 }

@@ -8,6 +8,7 @@ use phspring\net\server\event\IEvent;
 use phspring\net\server\Macro;
 use phspring\net\server\Manager;
 use phspring\net\server\ProcessUtil;
+use phspring\net\server\Timer;
 
 /**
  * Class AsyncTcp
@@ -273,10 +274,7 @@ class AsyncTcp extends Tcp
             if (method_exists($this->protocol, 'onConnect')) {
                 try {
                     call_user_func([$this->protocol, 'onConnect'], $this);
-                } catch (\Exception $e) {
-                    ProcessUtil::log($e);
-                    exit(250);
-                } catch (\Error $e) {
+                } catch (\Exception|\Error $e) {
                     ProcessUtil::log($e);
                     exit(250);
                 }

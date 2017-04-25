@@ -232,10 +232,7 @@ class Tcp extends Connection
                     if ($this->onError) {
                         try {
                             call_user_func($this->onError, $this, Macro::PHSPRING_SEND_FAIL, 'client closed');
-                        } catch (\Exception $e) {
-                            ProcessUtil::log($e);
-                            exit(250);
-                        } catch (\Error $e) {
+                        } catch (\Exception|\Error $e) {
                             ProcessUtil::log($e);
                             exit(250);
                         }
@@ -564,10 +561,7 @@ class Tcp extends Connection
             if ($this->onBufferFull) {
                 try {
                     call_user_func($this->onBufferFull, $this);
-                } catch (\Exception $e) {
-                    ProcessUtil::log($e);
-                    exit(250);
-                } catch (\Error $e) {
+                } catch (\Exception|\Error $e) {
                     ProcessUtil::log($e);
                     exit(250);
                 }
@@ -588,10 +582,7 @@ class Tcp extends Connection
                 try {
                     call_user_func($this->onError, $this, Macro::PHSPRING_SEND_FAIL,
                         'send buffer full and drop package');
-                } catch (\Exception $e) {
-                    ProcessUtil::log($e);
-                    exit(250);
-                } catch (\Error $e) {
+                } catch (\Exception|\Error $e) {
                     ProcessUtil::log($e);
                     exit(250);
                 }
@@ -626,10 +617,7 @@ class Tcp extends Connection
         if ($this->onClose) {
             try {
                 call_user_func($this->onClose, $this);
-            } catch (\Exception $e) {
-                ProcessUtil::log($e);
-                exit(250);
-            } catch (\Error $e) {
+            } catch (\Exception|\Error $e) {
                 ProcessUtil::log($e);
                 exit(250);
             }
@@ -638,10 +626,7 @@ class Tcp extends Connection
         if (method_exists($this->protocol, 'onClose')) {
             try {
                 call_user_func([$this->protocol, 'onClose'], $this);
-            } catch (\Exception $e) {
-                ProcessUtil::log($e);
-                exit(250);
-            } catch (\Error $e) {
+            } catch (\Exception|\Error $e) {
                 ProcessUtil::log($e);
                 exit(250);
             }
