@@ -5,6 +5,7 @@
 namespace phspring\net\server;
 
 use phspring\context\Ac;
+use phspring\net\server\event\IEvent;
 
 /**
  * Class ProcessUtil
@@ -56,8 +57,8 @@ class ProcessUtil
 
         $loopName = '';
         $availableEventLoops = [
-            'libevent' => '\Workerman\Events\Libevent',
-            'event' => '\Workerman\Events\Event'
+            'libevent' => '\phspring\net\server\event\Libevent',
+            'event' => '\phspring\net\server\event\Event'
         ];
         foreach ($availableEventLoops as $name => $class) {
             if (extension_loaded($name)) {
@@ -67,23 +68,9 @@ class ProcessUtil
         }
 
         if ($loopName) {
-            if (interface_exists('\React\EventLoop\LoopInterface')) {
-                switch ($loopName) {
-                    case 'libevent':
-                        $eventLoop = '\Workerman\Events\React\LibEventLoop';
-                        break;
-                    case 'event':
-                        $eventLoop = '\Workerman\Events\React\ExtEventLoop';
-                        break;
-                    default :
-                        $eventLoop = '\Workerman\Events\React\StreamSelectLoop';
-                        break;
-                }
-            } else {
-                $eventLoop = $availableEventLoops[$loopName];
-            }
+            $eventLoop = $availableEventLoops[$loopName];
         } else {
-            $eventLoop = interface_exists('\React\EventLoop\LoopInterface') ? '\Workerman\Events\React\StreamSelectLoop' : '\Workerman\Events\Select';
+            $eventLoop = '\phspring\net\server\event\Select';
         }
 
         return $eventLoop;
@@ -122,12 +109,12 @@ class ProcessUtil
         $startFile = $argv[0];
         if (!isset($argv[1])) {
             $argv[1] = 'start';
-            exit("Usage: php yourfile.php {start|stop|restart|reload|status}\n");
+            exit("Usage: php AppServer.php {start|stop|restart|reload|status}\n");
         }
 
         // Get command.
         $command = trim($argv[1]);
-        $command2 = isset($argv[2]) ? $argv[2] : '';
+        $command2 = $argv[2] ?? '';
 
         // Start command.
         $mode = '';
@@ -138,13 +125,13 @@ class ProcessUtil
                 $mode = 'in DEBUG mode';
             }
         }
-        echo("Server[$startFile] $command $mode \n");
+        echo("phspring[$startFile] $command $mode \n");
 
         // Get manager process PID.
-        $managerPid = @file_get_contents(self::$pidPath);
-        $manager_is_alive = $managerPid && @posix_kill($managerPid, 0);
+        $managerPid = @file_get_contents(Manager::$managerPidPath);
+        $managerIsAlive = $managerPid && @posix_kill($managerPid, 0);
         // Manager is still alive?
-        if ($manager_is_alive) {
+        if ($managerIsAlive) {
             if ($command === 'start' && posix_getpid() != $managerPid) {
                 echo("Server[$startFile] already running");
                 exit;
@@ -162,7 +149,7 @@ class ProcessUtil
                 }
                 break;
             case 'status':
-                if (is_file(self::$statisticsFile)) {
+                if (is_file(self::$statFile)) {
                     @unlink(self::$statisticsFile);
                 }
                 // Manager process will send status signal to all child processes.
@@ -174,18 +161,18 @@ class ProcessUtil
                 exit(0);
             case 'restart':
             case 'stop':
-                echo("Server[$startFile] is stoping ...");
+                echo("phspring[$startFile] is stoping ...");
                 // Send stop signal to manager process.
                 $managerPid && posix_kill($managerPid, SIGINT);
                 // Timeout.
                 $timeout = 5;
-                $start_time = time();
+                $startTime = time();
                 // Check manager process is still alive?
                 while (1) {
-                    $manager_is_alive = $managerPid && posix_kill($managerPid, 0);
-                    if ($manager_is_alive) {
-                        // Timeout?
-                        if (time() - $start_time >= $timeout) {
+                    $managerIsAlive = $managerPid && posix_kill($managerPid, 0);
+                    if ($managerIsAlive) {
+                        // check timeout
+                        if (time() - $startTime >= $timeout) {
                             echo("Server[$startFile] stop fail");
                             exit;
                         }
@@ -194,12 +181,12 @@ class ProcessUtil
                         continue;
                     }
                     // Stop success.
-                    echo("Server[$startFile] stop success");
+                    echo("phspring[$startFile] stop success");
                     if ($command === 'stop') {
                         exit(0);
                     }
                     if ($command2 === '-d') {
-                        Worker::$daemonize = true;
+                        Manager::$daemonize = true;
                     }
                     break;
                 }
@@ -281,11 +268,11 @@ class ProcessUtil
     public static function installSignal()
     {
         // stop
-        pcntl_signal(SIGINT, ['\Workerman\Worker', 'signalHandler'], false);
+        pcntl_signal(SIGINT, ["\\phspring\\net\\server\\Manager", 'signalHandler'], false);
         // reload
-        pcntl_signal(SIGUSR1, ['\Workerman\Worker', 'signalHandler'], false);
+        pcntl_signal(SIGUSR1, ["\\phspring\\net\\server\\Manager", 'signalHandler'], false);
         // status
-        pcntl_signal(SIGUSR2, ['\Workerman\Worker', 'signalHandler'], false);
+        pcntl_signal(SIGUSR2, ["\\phspring\\net\\server\\Manager", 'signalHandler'], false);
         // ignore
         pcntl_signal(SIGPIPE, SIG_IGN, false);
     }
@@ -304,11 +291,11 @@ class ProcessUtil
         // uninstall  status signal handler
         pcntl_signal(SIGUSR2, SIG_IGN, false);
         // reinstall stop signal handler
-        $event->add(SIGINT, IEvent::EV_SIGNAL, ['\Workerman\Worker', 'signalHandler']);
+        $event->add(SIGINT, IEvent::EV_SIGNAL, ["\\phspring\\net\\server\\Manager", 'signalHandler']);
         // reinstall  reload signal handler
-        $event->add(SIGUSR1, IEvent::EV_SIGNAL, ['\Workerman\Worker', 'signalHandler']);
+        $event->add(SIGUSR1, IEvent::EV_SIGNAL, ["\\phspring\\net\\server\\Manager", 'signalHandler']);
         // reinstall  status signal handler
-        $event->add(SIGUSR2, IEvent::EV_SIGNAL, ['\Workerman\Worker', 'signalHandler']);
+        $event->add(SIGUSR2, IEvent::EV_SIGNAL, ["\\phspring\\net\\server\\Manager", 'signalHandler']);
     }
 
     /**
@@ -328,9 +315,9 @@ class ProcessUtil
      */
     public static function displayUI()
     {
-        self::safeEcho("\033[1A\n\033[K-----------------------\033[47;30m WORKERMAN \033[0m-----------------------------\n\033[0m");
-        self::safeEcho('Workerman version:' . Worker::VERSION . "          PHP version:" . PHP_VERSION . "\n");
-        self::safeEcho("------------------------\033[47;30m WORKERS \033[0m-------------------------------\n");
+        self::safeEcho("\033[1A\n\033[K-----------------------\033[47;30m PhSpring \033[0m-----------------------------\n\033[0m");
+        self::safeEcho('PhSpring version:' . AC::$version . "          PHP version:" . PHP_VERSION . "\n");
+        self::safeEcho("------------------------\033[47;30m Workers \033[0m-------------------------------\n");
         self::safeEcho("\033[47;30muser\033[0m" . str_pad('',
                 self::$maxUserNameLength + 2 - strlen('user')) . "\033[47;30mworker\033[0m" . str_pad('',
                 self::$maxWorkerNameLength + 2 - strlen('worker')) . "\033[47;30mlisten\033[0m" . str_pad('',
@@ -345,8 +332,7 @@ class ProcessUtil
         self::safeEcho("----------------------------------------------------------------\n");
         if (self::$daemonize) {
             global $argv;
-            $start_file = $argv[0];
-            self::safeEcho("Input \"php $start_file stop\" to quit. Start success.\n\n");
+            self::safeEcho("Input \"php $argv[0] stop\" to quit. Start success.\n\n");
         } else {
             self::safeEcho("Press Ctrl-C to quit. Start success.\n");
         }
@@ -404,7 +390,7 @@ class ProcessUtil
     public static function writeStatisticsToStatusFile()
     {
         // For manager process.
-        if (self::$managerPid === posix_getpid()) {
+        if (Manager::$managerPid === posix_getpid()) {
             $loadavg = function_exists('sys_getloadavg') ? array_map('round', sys_getloadavg(), [2]) : [
                 '-',
                 '-',
@@ -413,19 +399,19 @@ class ProcessUtil
             file_put_contents(self::$statisticsFile,
                 "---------------------------------------GLOBAL STATUS--------------------------------------------\n");
             file_put_contents(self::$statisticsFile,
-                'Workerman version:' . Worker::VERSION . "          PHP version:" . PHP_VERSION . "\n", FILE_APPEND);
+                'PhSpring version:' . AC::$version . "          PHP version:" . PHP_VERSION . "\n", FILE_APPEND);
             file_put_contents(self::$statisticsFile, 'start time:' . date('Y-m-d H:i:s',
                     self::$globalStatistics['start_timestamp']) . '   run ' . floor((time() - self::$globalStatistics['start_timestamp']) / (24 * 60 * 60)) . ' days ' . floor(((time() - self::$globalStatistics['start_timestamp']) % (24 * 60 * 60)) / (60 * 60)) . " hours   \n",
                 FILE_APPEND);
             $load_str = 'load average: ' . implode(", ", $loadavg);
             file_put_contents(self::$statisticsFile,
-                str_pad($load_str, 33) . 'event-loop:' . self::getEventLoopName() . "\n", FILE_APPEND);
+                str_pad($load_str, 33) . 'event-loop:' . Manager::getEvent() . "\n", FILE_APPEND);
             file_put_contents(self::$statisticsFile,
-                count(self::$pidMap) . ' workers       ' . count(self::getAllWorkerPids()) . " processes\n",
+                count(self::$pidMap) . ' workers       ' . count(Manager::getAllWorkerPids()) . " processes\n",
                 FILE_APPEND);
             file_put_contents(self::$statisticsFile,
                 str_pad('worker_name', self::$maxWorkerNameLength) . " exit_status     exit_count\n", FILE_APPEND);
-            foreach (self::$pidMap as $workerId => $worker_pid_array) {
+            foreach (self::$pidMap as $workerId => $pids) {
                 $worker = self::$workers[$workerId];
                 if (isset(self::$globalStatistics['worker_exit_info'][$workerId])) {
                     foreach (self::$globalStatistics['worker_exit_info'][$workerId] as $worker_exit_status => $worker_exit_count) {

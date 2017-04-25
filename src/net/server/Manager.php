@@ -25,7 +25,7 @@ class Manager
     /**
      * @var int
      */
-    protected static $managerPid = 0;
+    public static $managerPid = 0;
     /**
      * @var string
      */
@@ -220,6 +220,21 @@ class Manager
     }
 
     /**
+     * @return array
+     */
+    public static function getAllWorkerPids()
+    {
+        $pids = [];
+        foreach (self::$workerPidMap as $pids) {
+            foreach ($pids as $pid) {
+                $pids[$pid] = $pid;
+            }
+        }
+
+        return $pids;
+    }
+
+    /**
      * @return void
      */
     protected static function initWorkers()
@@ -254,21 +269,6 @@ class Manager
             }
             self::$wokerPids[$workerId] = $ids;
         }
-    }
-
-    /**
-     * @return array
-     */
-    protected static function getAllWorkerPids()
-    {
-        $pids = [];
-        foreach (self::$workerPidMap as $pids) {
-            foreach ($pids as $pid) {
-                $pids[$pid] = $pid;
-            }
-        }
-
-        return $pids;
     }
 
     /**
@@ -353,7 +353,7 @@ class Manager
             }
         }
         @unlink(self::$managerPidPath);
-        self::log("Workerman[" . basename(self::$startFile) . "] has been stopped");
+        ProcessUtil::log("phspring[" . basename(self::$startFile) . "] has been stopped");
         if (self::$onManagerStop) {
             call_user_func(self::$onManagerStop);
         }
@@ -369,7 +369,7 @@ class Manager
         // For manager process.
         if (self::$managerPid === posix_getpid()) {
             if (self::$status !== self::STATUS_RELOADING && self::$status !== self::STATUS_SHUTDOWN) {
-                self::log("PhSpring[" . basename(self::$startFile) . "] reloading");
+                self::log("phspring[" . basename(self::$startFile) . "] reloading");
                 self::$status = self::STATUS_RELOADING;
                 if (self::$onManagerReload) {
                     try {

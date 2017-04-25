@@ -215,11 +215,11 @@ class Worker
                 $this->protocol = $scheme;
             } else {
                 $scheme = ucfirst($scheme);
-                $this->protocol = '\\Protocols\\' . $scheme;
+                $this->protocol = '\\protocol\\' . $scheme;
                 if (!class_exists($this->protocol)) {
-                    $this->protocol = "\\Workerman\\Protocols\\$scheme";
+                    $this->protocol = "\\phspring\\net\\server\\protocol\\$scheme";
                     if (!class_exists($this->protocol)) {
-                        throw new Exception("class \\Protocols\\$scheme not exist");
+                        throw new Exception("class \\protocol\\$scheme not exist");
                     }
                 }
             }
