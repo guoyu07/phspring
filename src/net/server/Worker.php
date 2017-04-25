@@ -8,7 +8,6 @@ use phspring\net\server\connection\Connection;
 use phspring\net\server\connection\Tcp;
 use phspring\net\server\connection\Udp;
 use phspring\net\server\event\IEvent;
-use phspring\net\server\Macro;
 
 /**
  * Class Worker
@@ -23,7 +22,7 @@ class Worker
     /**
      * @var string
      */
-    public $name = 'none';
+    public $name = 'nobody';
     /**
      * @var int
      */
@@ -134,7 +133,7 @@ class Worker
      * Construct.
      *
      * @param string $socketName
-     * @param array $context_option
+     * @param array $contextOption
      */
     public function __construct($socketName = '', $contextOption = [])
     {
@@ -197,7 +196,6 @@ class Worker
 
     /**
      * Listen port.
-     *
      * @throws Exception
      */
     public function listen()
@@ -276,12 +274,11 @@ class Worker
 
     /**
      * Get socket name.
-     *
      * @return string
      */
     public function getSocketName()
     {
-        return $this->socketName ? lcfirst($this->socketName) : 'none';
+        return $this->socketName ? lcfirst($this->socketName) : 'nobody';
     }
 
     /**
@@ -294,7 +291,7 @@ class Worker
         //Update process state.
         Manager::$status = Macro::STATUS_RUNNING;
         // Register shutdown function for checking errors.
-        register_shutdown_function(["\\Workerman\\Worker", 'checkErrors']);
+        register_shutdown_function(["\\phspring\\net\\server\\Worker", 'checkErrors']);
         // Set autoload root path.
         Autoloader::setRootPath($this->autoloadRootPath);
         // Create a global event loop.

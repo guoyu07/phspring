@@ -32,12 +32,12 @@ class Server extends Worker
      * Add virtual host.
      *
      * @param string $domain
-     * @param string $root_path
+     * @param string $rootPath
      * @return void
      */
-    public function addRoot($domain, $root_path)
+    public function addRoot($domain, $rootPath)
     {
-        $this->serverRoot[$domain] = $root_path;
+        $this->serverRoot[$domain] = $rootPath;
     }
 
     /**
@@ -50,7 +50,7 @@ class Server extends Worker
     {
         list(, $address) = explode(':', $socketName, 2);
         parent::__construct('http:' . $address, $contextOption);
-        $this->name = 'WebServer';
+        $this->name = 'Server';
     }
 
     /**
@@ -74,7 +74,7 @@ class Server extends Worker
     public function onWorkerStart()
     {
         if (empty($this->serverRoot)) {
-            throw new \Exception('server root not set, please use WebServer::addRoot($domain, $root_path) to set server root path');
+            throw new \Exception('server root not set, please use WebServer::addRoot($domain, $rootPath) to set server root path');
             exit(250);
         }
 
@@ -85,10 +85,7 @@ class Server extends Worker
         if ($this->_onWorkerStart) {
             try {
                 call_user_func($this->_onWorkerStart, $this);
-            } catch (\Exception $e) {
-                self::log($e);
-                exit(250);
-            } catch (\Error $e) {
+            } catch (\Exception|\Error $e) {
                 self::log($e);
                 exit(250);
             }
