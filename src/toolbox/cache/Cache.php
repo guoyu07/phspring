@@ -2,7 +2,7 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\cache;
+namespace phspring\toolbox\cache;
 
 use phspring\core\Bean;
 
@@ -13,16 +13,16 @@ use phspring\core\Bean;
 abstract class Cache extends Bean implements ICache
 {
     /**
-     * @var string
+     * @var string key prefix
      */
-    public $keyPrefix = '';
+    public $prefix = '';
 
     /**
      * @param $key
      */
     public function buildKey($key)
     {
-        return $this->keyPrefix . $key;
+        return $this->prefix . $key;
     }
 
     /**
@@ -65,6 +65,24 @@ abstract class Cache extends Bean implements ICache
      * @return mixed
      */
     public function mset(array $elements)
+    {
+
+    }
+
+    /**
+     * @param $key
+     * @param $val
+     */
+    public function increment($key, $val = 1)
+    {
+
+    }
+
+    /**
+     * @param $key
+     * @param $val
+     */
+    public function decrement($key, $val = 1)
     {
 
     }
@@ -120,6 +138,20 @@ abstract class Cache extends Bean implements ICache
      * @return mixed
      */
     abstract public function doDelete($key);
+
+    /**
+     * @param $key
+     * @param $val
+     * @return mixed
+     */
+    abstract public function doIncrement($key, $val);
+
+    /**
+     * @param $key
+     * @param $val
+     * @return mixed
+     */
+    abstract public function doDecrement($key, $val);
 
     /**
      * @return mixed

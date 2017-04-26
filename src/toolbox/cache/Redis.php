@@ -2,7 +2,7 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\cache;
+namespace phspring\toolbox\cache;
 
 /**
  * Class Redis
@@ -44,6 +44,24 @@ class Redis extends Cache implements ICache
      * @return mixed
      */
     public function doMset(array $elements)
+    {
+
+    }
+
+    /**
+     * @param $key
+     * @param $val
+     */
+    public function doIncrement($key, $val)
+    {
+
+    }
+
+    /**
+     * @param $key
+     * @param int $val
+     */
+    public function doDecrement($key, $val)
     {
 
     }

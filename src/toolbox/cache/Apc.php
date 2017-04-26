@@ -2,27 +2,14 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\cache;
+namespace phspring\toolbox\cache;
 
 /**
- * Class Memcached
+ * Class Apc
  * @package phspring\cache
  */
-class Memcached extends Cache implements ICache
+class Apc extends Cache implements ICache
 {
-    /**
-     * @var array
-     */
-    public $servers = [];
-
-    /**
-     * init
-     */
-    public function init()
-    {
-
-    }
-
     /**
      * @param $key
      * @return mixed
@@ -57,6 +44,24 @@ class Memcached extends Cache implements ICache
      * @return mixed
      */
     public function doMset(array $elements)
+    {
+
+    }
+
+    /**
+     * @param $key
+     * @param $val
+     */
+    public function doIncrement($key, $val)
+    {
+
+    }
+
+    /**
+     * @param $key
+     * @param int $val
+     */
+    public function doDecrement($key, $val)
     {
 
     }

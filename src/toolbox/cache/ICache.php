@@ -2,7 +2,7 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\cache;
+namespace phspring\toolbox\cache;
 
 /**
  * Interface ICache
@@ -35,6 +35,20 @@ Interface ICache
      * @return mixed
      */
     public function mset(array $elements);
+
+    /**
+     * @param $key
+     * @param $val
+     * @return mixed
+     */
+    public function increment($key, $val);
+
+    /**
+     * @param $key
+     * @param $val
+     * @return mixed
+     */
+    public function decrement($key, $val);
 
     /**
      * @param $key
