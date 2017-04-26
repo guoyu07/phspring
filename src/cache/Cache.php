@@ -29,36 +29,100 @@ abstract class Cache extends Bean implements ICache
      * @param $key
      * @return mixed
      */
-    abstract public function get($key);
+    public function get($key)
+    {
+        $key = $this->buildKey($key);
+        $val = $this->doGet($key);
+
+        return $val;
+    }
 
     /**
      * @param $key
-     * @param $value
+     * @param $val
      * @param int $expire
      * @return mixed
      */
-    abstract public function set($key, $value, $expire = 0);
+    public function set($key, $val, $expire = 0)
+    {
+        $key = $this->buildKey($key);
+        $res = $this->doSet($key, $val, $expire);
+
+        return $res;
+    }
 
     /**
      * @param $key
      * @return mixed
      */
-    abstract public function mget(array $keys);
+    public function mget(array $keys)
+    {
+
+    }
 
     /**
      * @param array $elements
      * @return mixed
      */
-    abstract public function mset(array $elements);
+    public function mset(array $elements)
+    {
+
+    }
 
     /**
      * @param $key
      * @return mixed
      */
-    abstract public function delete($key);
+    public function delete($key)
+    {
+        $key = $this->buildKey($key);
+        $res = $this->doDelete($key);
+
+        return $res;
+    }
 
     /**
      * @return mixed
      */
-    abstract public function flush();
+    public function flush()
+    {
+
+    }
+
+    /**
+     * @param $key
+     * @return mixed
+     */
+    abstract public function doGet($key);
+
+    /**
+     * @param $key
+     * @param $val
+     * @param int $expire
+     * @return mixed
+     */
+    abstract public function doSet($key, $val, $expire = 0);
+
+    /**
+     * @param array $keys
+     * @return mixed
+     */
+    abstract public function doMget(array $keys);
+
+    /**
+     * @param array $elements
+     * @return mixed
+     */
+    abstract public function doMset(array $elements);
+
+    /**
+     * @param $key
+     * @return mixed
+     */
+    abstract public function doDelete($key);
+
+    /**
+     * @return mixed
+     */
+    abstract public function doFlush();
 }

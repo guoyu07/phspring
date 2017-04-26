@@ -77,7 +77,7 @@ class Timer
         }
 
         if (!is_callable($func)) {
-            echo new \Exception("not callable");
+            echo new \Exception('not callable');
             return false;
         }
 
@@ -91,6 +91,7 @@ class Timer
             self::$_tasks[$runTime] = [];
         }
         self::$_tasks[$runTime][] = [$func, (array)$args, $persistent, $timeInterval];
+
         return 1;
     }
 

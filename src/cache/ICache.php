@@ -18,11 +18,11 @@ Interface ICache
 
     /**
      * @param $key
-     * @param $value
+     * @param $val
      * @param int $expire
      * @return mixed
      */
-    public function set($key, $value, $expire = 0);
+    public function set($key, $val, $expire = 0);
 
     /**
      * @param $key

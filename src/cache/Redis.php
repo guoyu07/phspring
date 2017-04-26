@@ -14,18 +14,18 @@ class Redis extends Cache implements ICache
      * @param $key
      * @return mixed
      */
-    public function get($key)
+    public function doGet($key)
     {
 
     }
 
     /**
      * @param $key
-     * @param $value
+     * @param $val
      * @param int $expire
      * @return mixed
      */
-    public function set($key, $value, $expire = 0)
+    public function doSet($key, $val, $expire = 0)
     {
 
     }
@@ -34,7 +34,7 @@ class Redis extends Cache implements ICache
      * @param $key
      * @return mixed
      */
-    public function mget(array $keys)
+    public function doMget(array $keys)
     {
 
     }
@@ -43,7 +43,7 @@ class Redis extends Cache implements ICache
      * @param array $elements
      * @return mixed
      */
-    public function mset(array $elements)
+    public function doMset(array $elements)
     {
 
     }
@@ -52,7 +52,7 @@ class Redis extends Cache implements ICache
      * @param $key
      * @return mixed
      */
-    public function delete($key)
+    public function doDelete($key)
     {
 
     }
@@ -60,7 +60,7 @@ class Redis extends Cache implements ICache
     /**
      * @return mixed
      */
-    public function flush()
+    public function doFlush()
     {
 
     }

@@ -27,42 +27,36 @@ class Memcached extends Cache implements ICache
      * @param $key
      * @return mixed
      */
-    public function get($key)
+    public function doGet($key)
     {
-        $key = $this->buildKey($key);
 
-        return $this->_cache->get($key);
     }
 
     /**
      * @param $key
-     * @param $value
+     * @param $val
      * @param int $expire
-     * @return bool
+     * @return mixed
      */
-    public function set($key, $value, $expire = 0)
+    public function doSet($key, $val, $expire = 0)
     {
-        $key = $this->buildKey($key);
 
-        return $this->_cache->set($key, $value, $expire);
     }
 
     /**
      * @param $key
      * @return mixed
      */
-    public function mget(array $keys)
+    public function doMget(array $keys)
     {
-        foreach ($keys as &$key) {
-            $key = $this->buildKey($key);
-        }
+
     }
 
     /**
      * @param array $elements
      * @return mixed
      */
-    public function mset(array $elements)
+    public function doMset(array $elements)
     {
 
     }
@@ -71,7 +65,7 @@ class Memcached extends Cache implements ICache
      * @param $key
      * @return mixed
      */
-    public function delete($key)
+    public function doDelete($key)
     {
 
     }
@@ -79,7 +73,7 @@ class Memcached extends Cache implements ICache
     /**
      * @return mixed
      */
-    public function flush()
+    public function doFlush()
     {
 
     }
