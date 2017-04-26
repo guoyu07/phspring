@@ -6,7 +6,11 @@ namespace phspring\toolbox\lock;
 
 use phspring\core\Bean;
 
-class Lock extends Bean implements ILock
+/**
+ * Class Lock
+ * @package phspring\toolbox\lock
+ */
+abstract class Lock extends Bean implements ILock
 {
     /**
      * @param $data

@@ -11,12 +11,12 @@ namespace phspring\toolbox\lock;
 interface ILock
 {
     /**
-     * encrypt
+     * acquire lock
      */
     public function acquire($data, $key = '');
 
     /**
-     * decrypt
+     * release lock
      */
     public function release($data, $key = '');
 }
