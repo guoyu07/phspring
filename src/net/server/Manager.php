@@ -60,16 +60,7 @@ class Manager
      * ]
      * @var array
      */
-    public static $workerPidMap = [];
-    /**
-     * The format is like this
-     * [
-     *     pid1 => pid1,
-     *     pid2 => pid2
-     * ].
-     * @var array
-     */
-    public static $pidsForReload = [];
+    //public static $workerPidMap = [];
     /**
      * The format is like this
      * [
@@ -80,7 +71,16 @@ class Manager
      * ]
      * @var array
      */
-    public static $wokerPids = [];
+    public static $workersPids = [];
+    /**
+     * The format is like this
+     * [
+     *     pid1 => pid1,
+     *     pid2 => pid2
+     * ].
+     * @var array
+     */
+    public static $pidsForReload = [];
 
     /**
      * @var int
@@ -159,14 +159,14 @@ class Manager
      */
     public static function stopAll()
     {
-        self::$status = self::STATUS_SHUTDOWN;
+        self::$status = Macro::STATUS_SHUTDOWN;
         // For manager process.
         if (self::$managerPid === posix_getpid()) {
             ProcessUtil::log('phspring[' . basename(self::$startFile) . '] stopping ...');
             $pids = self::getAllWorkerPids();
             foreach ($pids as $pid) {
                 posix_kill($pid, SIGINT);
-                Timer::add(self::KILL_WORKER_TIMER_TIME, 'posix_kill', [$pid, SIGKILL], false);
+                Timer::add(Macro::KILL_WORKER_TIMER_TIME, 'posix_kill', [$pid, SIGKILL], false);
             }
         } else { // For child processes.
             foreach (self::$workers as $worker) {
@@ -190,7 +190,7 @@ class Manager
         // Stats.
         ProcessUtil::setStatsData('startTime', time());
         // Init data for worker id.
-        self::initId();
+        self::initWorkerPids();
         // Timer init.
         Timer::init();
         // select a event
@@ -204,7 +204,7 @@ class Manager
      */
     public static function checkErrors()
     {
-        if (self::STATUS_SHUTDOWN != self::$status) {
+        if (self::$status != Macro::STATUS_SHUTDOWN) {
             $errMsg = 'WORKER EXIT UNEXPECTED ';
             $errors = error_get_last();
             if ($errors && ($errors['type'] === E_ERROR ||
@@ -215,23 +215,40 @@ class Manager
             ) {
                 $errMsg .= ProcessUtil::getErrorType($errors['type']) . " {$errors['message']} in {$errors['file']} on line {$errors['line']}";
             }
-            self::log($errMsg);
+            ProcessUtil::log($errMsg);
         }
     }
 
     /**
      * @return array
+     * Data structure like this.
+     * [
+     *     pid1 => pid1,
+     *     pid2 => pid2,
+     * ]
      */
     public static function getAllWorkerPids()
     {
-        $pids = [];
-        foreach (self::$workerPidMap as $pids) {
+        $all = [];
+
+        foreach (self::$workersPids as $pids) {
             foreach ($pids as $pid) {
-                $pids[$pid] = $pid;
+                if ($pid == 0) {
+                    continue;
+                }
+                $all[$pid] = $pid;
             }
         }
 
-        return $pids;
+        return $all;
+    }
+
+    /**
+     * @param $worker Worker
+     */
+    public static function getWorkerPids(Worker $worker)
+    {
+        return array_values(array_filter(self::$workersPids[$worker->workerId]));
     }
 
     /**
@@ -239,6 +256,7 @@ class Manager
      */
     protected static function initWorkers()
     {
+        /* @var $worker Worker */
         foreach (self::$workers as $worker) {
             if (empty($worker->name)) {
                 $worker->name = 'nobody';
@@ -260,14 +278,15 @@ class Manager
      * Init idMap.
      * return void
      */
-    protected static function initId()
+    protected static function initWorkerPids()
     {
+        /* @var $worker Worker */
         foreach (self::$workers as $workerId => $worker) {
             $ids = [];
             for ($i = 0; $i < $worker->count; $i++) {
-                $ids[$i] = self::$wokerPids[$workerId][$i] ?? 0;
+                $ids[$i] = self::$workersPids[$workerId][$i] ?? 0;
             }
-            self::$wokerPids[$workerId] = $ids;
+            self::$workersPids[$workerId] = $ids;
         }
     }
 
@@ -284,20 +303,22 @@ class Manager
                 }
             }
 
-            $worker->count = max(1, $worker->count);
-            while (count(self::$workerPidMap[$worker->workerId]) < $worker->count) {
+            //while (count(self::$workerPidMap[$worker->workerId]) < $worker->count) {
+            while (count(self::getWorkerPids($worker)) < $worker->count) {
                 static::forkWorker($worker);
             }
         }
     }
 
     /**
+     * fork one worker
      * @param Worker $worker
      * @throws Exception
      */
     protected static function forkWorker($worker)
     {
-        $id = self::getId($worker->workerId, 0);
+        //$id = self::getId($worker->workerId, 0);
+        $id = array_search(0, self::$workersPids[$worker->workerId]);
         if ($id === false) {
             return;
         }
@@ -305,16 +326,16 @@ class Manager
         $pid = pcntl_fork();
         // manager process.
         if ($pid > 0) {
-            self::$workerPidMap[$worker->workerId][$pid] = $pid;
-            self::$wokerPids[$worker->workerId][$id] = $pid;
+            //self::$workerPidMap[$worker->workerId][$pid] = $pid;
+            self::$workersPids[$worker->workerId][$id] = $pid;
         } elseif (0 === $pid) { // child processes.
             if ($worker->reusePort) {
                 $worker->listen();
             }
-            if (self::$status === self::STATUS_STARTING) {
+            if (self::$status === Macro::STATUS_STARTING) {
                 ProcessUtil::resetStd();
             }
-            self::$workerPidMap = [];
+            //self::$workerPidMap = [];???
             self::$workers = [
                 $worker->workerId => $worker
             ];
@@ -324,20 +345,11 @@ class Manager
             $worker->id = $id;
             $worker->run();
             $err = new \Exception('event-loop exited');
-            self::log($err);
+            ProcessUtil::log($err);
             exit(250);
         } else {
             throw new \Exception("Fork one worker failed.");
         }
-    }
-
-    /**
-     * @param int $workerId
-     * @param int $pid
-     */
-    protected static function getId($workerId, $pid)
-    {
-        return array_search($pid, self::$wokerPids[$workerId]);
     }
 
     /**
@@ -368,22 +380,23 @@ class Manager
     {
         // For manager process.
         if (self::$managerPid === posix_getpid()) {
-            if (self::$status !== self::STATUS_RELOADING && self::$status !== self::STATUS_SHUTDOWN) {
-                self::log("phspring[" . basename(self::$startFile) . "] reloading");
-                self::$status = self::STATUS_RELOADING;
+            if (self::$status !== Macro::STATUS_RELOADING && self::$status !== Macro::STATUS_SHUTDOWN) {
+                ProcessUtil::log("phspring[" . basename(self::$startFile) . "] reloading");
+                self::$status = Macro::STATUS_RELOADING;
                 if (self::$onManagerReload) {
                     try {
                         call_user_func(self::$onManagerReload);
                     } catch (\Exception|\Error $e) {
-                        self::log($e);
+                        ProcessUtil::log($e);
                         exit(250);
                     }
-                    self::initId();
+                    self::initWorkerPids();
                 }
             }
 
             $pidsReloadable = [];
-            foreach (self::$workerPidMap as $workerId => $pids) {
+            //foreach (self::$workerPidMap as $workerId => $pids) {
+            foreach (self::$workersPids as $workerId => $pids) {
                 /* @var $worker Worker */
                 $worker = self::$workers[$workerId];
                 if ($worker->reloadable) {
@@ -400,21 +413,22 @@ class Manager
             self::$pidsForReload = array_intersect(self::$pidsForReload, $pidsReloadable);
 
             if (empty(self::$pidsForReload)) {
-                if (self::$status !== self::STATUS_SHUTDOWN) {
-                    self::$status = self::STATUS_RUNNING;
+                if (self::$status !== Macro::STATUS_SHUTDOWN) {
+                    self::$status = Macro::STATUS_RUNNING;
                 }
                 return;
             }
             $currentPid = current(self::$pidsForReload);
             posix_kill($currentPid, SIGUSR1);
-            Timer::add(self::KILL_WORKER_TIMER_TIME, 'posix_kill', [$currentPid, SIGKILL], false);
+            Timer::add(Macro::KILL_WORKER_TIMER_TIME, 'posix_kill', [$currentPid, SIGKILL], false);
         } else { // For child processes.
+            /* @var $worker Worker */
             $worker = current(self::$workers);
             if ($worker->onWorkerReload) {
                 try {
                     call_user_func($worker->onWorkerReload, $worker);
                 } catch (\Exception|\Error $e) {
-                    self::log($e);
+                    ProcessUtil::log($e);
                     exit(250);
                 }
             }
@@ -430,18 +444,20 @@ class Manager
      */
     protected static function monitorWorkers()
     {
-        self::$status = self::STATUS_RUNNING;
+        self::$status = Macro::STATUS_RUNNING;
         while (1) {
             pcntl_signal_dispatch();
             $status = 0;
             $pid = pcntl_wait($status, WUNTRACED);
             pcntl_signal_dispatch();
             if ($pid > 0) {
-                foreach (self::$workerPidMap as $workerId => $pids) {
-                    if (isset($pids[$pid])) {
+                //foreach (self::$workerPidMap as $workerId => $pids) {
+                foreach (self::$workersPids as $workerId => $pids) {
+                    //if (isset($pids[$pid])) {
+                    if (in_array($pid, $pids)) {
                         $worker = self::$workers[$workerId];
                         if ($status !== 0) {
-                            self::log("worker[" . $worker->name . ":$pid] exit with status $status");
+                            ProcessUtil::log("worker[" . $worker->name . ":$pid] exit with status $status");
                         }
 
                         if (!isset(self::$globalStatistics['worker_exit_info'][$workerId][$status])) {
@@ -449,15 +465,12 @@ class Manager
                         }
                         self::$globalStatistics['worker_exit_info'][$workerId][$status]++;
 
-                        unset(self::$workerPidMap[$workerId][$pid]);
-
-                        $id = self::getId($workerId, $pid);
-                        self::$wokerPids[$workerId][$id] = 0;
-
+                        //unset(self::$workerPidMap[$workerId][$pid]);
+                        self::$workersPids[$workerId][array_search($pid, $pids)] = 0;
                         break;
                     }
                 }
-                if (self::$status !== self::STATUS_SHUTDOWN) {
+                if (self::$status !== Macro::STATUS_SHUTDOWN) {
                     self::forkWorkers();
                     if (isset(self::$pidsForReload[$pid])) {
                         unset(self::$pidsForReload[$pid]);
@@ -469,7 +482,7 @@ class Manager
                     }
                 }
             } else {
-                if (self::$status === self::STATUS_SHUTDOWN && !self::getAllWorkerPids()) {
+                if (self::$status === Macro::STATUS_SHUTDOWN && !self::getAllWorkerPids()) {
                     self::exitAndDestoryAll();
                 }
             }

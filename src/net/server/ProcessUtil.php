@@ -56,11 +56,11 @@ class ProcessUtil
         }
 
         $loopName = '';
-        $availableEventLoops = [
+        $availables = [
             'libevent' => '\phspring\net\server\event\Libevent',
             'event' => '\phspring\net\server\event\Event'
         ];
-        foreach ($availableEventLoops as $name => $class) {
+        foreach ($availables as $name => $class) {
             if (extension_loaded($name)) {
                 $loopName = $name;
                 break;
@@ -68,7 +68,7 @@ class ProcessUtil
         }
 
         if ($loopName) {
-            $eventLoop = $availableEventLoops[$loopName];
+            $eventLoop = $availables[$loopName];
         } else {
             $eventLoop = '\phspring\net\server\event\Select';
         }
@@ -133,11 +133,11 @@ class ProcessUtil
         // Manager is still alive?
         if ($managerIsAlive) {
             if ($command === 'start' && posix_getpid() != $managerPid) {
-                echo("Server[$startFile] already running");
+                echo("phspring[$startFile] already running");
                 exit;
             }
         } elseif ($command !== 'start' && $command !== 'restart') {
-            echo("Server[$startFile] not run");
+            echo("phspring[$startFile] not run");
             exit;
         }
 
@@ -173,7 +173,7 @@ class ProcessUtil
                     if ($managerIsAlive) {
                         // check timeout
                         if (time() - $startTime >= $timeout) {
-                            echo("Server[$startFile] stop fail");
+                            echo("phspring[$startFile] stop fail");
                             exit;
                         }
                         // Waiting amoment.
@@ -193,7 +193,7 @@ class ProcessUtil
                 break;
             case 'reload':
                 posix_kill($managerPid, SIGUSR1);
-                echo("Server[$startFile] reload");
+                echo("phspring[$startFile] reload");
                 exit;
             default :
                 exit("Usage: php yourfile.php {start|stop|restart|reload|status}\n");

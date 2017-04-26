@@ -4,6 +4,7 @@
  */
 namespace phspring\net\server;
 
+use phspring\context\Ac;
 use phspring\net\server\connection\Connection;
 use phspring\net\server\connection\Tcp;
 use phspring\net\server\connection\Udp;
@@ -15,6 +16,11 @@ use phspring\net\server\event\IEvent;
  */
 class Worker
 {
+    /**
+     * class hash id.
+     * @var string
+     */
+    public $workerId = '';
     /**
      * @var int
      */
@@ -139,8 +145,9 @@ class Worker
     {
         // Save all worker instances.
         $this->workerId = spl_object_hash($this);
+        $this->setCount(Ac::config()->get('server.worker.count', 1));
         Manager::$workers[$this->workerId] = $this;
-        Manager::$wokerPids[$this->workerId] = [];
+        Manager::$workersPids[$this->workerId] = [];
 
         // Get autoload root path.
         $backtrace = debug_backtrace();
@@ -296,7 +303,7 @@ class Worker
         Autoloader::setRootPath($this->autoloadRootPath);
         // Create a global event loop.
         if (!Manager::$event) {
-            $class = Manager::getEvent();
+            $class = Manager::getEvent(); // ???
             Manager::$event = new $class;
             // Register a listener to be notified when server socket is ready to read.
             if ($this->socketName) {
@@ -312,7 +319,6 @@ class Worker
 
         // Reinstall signal.
         ProcessUtil::reinstallSignal();
-
         // Init Timer.
         Timer::init(Manager::$event);
 
@@ -413,7 +419,7 @@ class Worker
                     return true;
                 }
             }
-            Connection::$statistics['total_request']++;
+            Connection::$statistics['totalRequest']++;
             try {
                 call_user_func($this->onMessage, $connection, $recvBuffer);
             } catch (\Exception|\Error $e) {
@@ -423,5 +429,13 @@ class Worker
         }
 
         return true;
+    }
+
+    /**
+     * @param int $count
+     */
+    public function setCount($count)
+    {
+        $this->count = max(1, (int)$count);
     }
 }
