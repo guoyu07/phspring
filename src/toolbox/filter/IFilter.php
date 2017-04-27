@@ -12,10 +12,10 @@ interface IFilter
 {
     /**
      * 在执行 method 前调用
-     * @param Request $request
+     * @param FilterInput $input
      * @return bool
      */
-    function beforeMethod(Request $request);
+    function beforeMethod(FilterInput $input);
 
     /**
      * filter fail.

@@ -4,7 +4,7 @@
  */
 namespace phspring\toolbox\filter\acf;
 
-use phspring\toolbox\filter\Request;
+use phspring\toolbox\filter\FilterInput;
 
 /**
  * Class AccessRule
@@ -54,17 +54,17 @@ class AccessRule
 
     /**
      * @param $user
-     * @param Request $request
+     * @param FilterInput $input
      * @return bool|null
      */
-    public function allows($user, Request $request)
+    public function allows($user, FilterInput $input)
     {
-        if ($this->matchMethod($request->method)
+        if ($this->matchMethod($input->method)
             && $this->matchRole($user)
-            && $this->matchIP($request->ip)
-            && $this->matchVerb($request->method)
-            && $this->matchController($request->controller)
-            && $this->matchCustom($request->method)
+            && $this->matchIP($input->ip)
+            && $this->matchVerb($input->method)
+            && $this->matchController($input->controller)
+            && $this->matchCustom($input->method)
         ) {
             return $this->allow ? true : false;
         } else {

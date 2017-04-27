@@ -6,7 +6,11 @@ namespace phspring\toolbox\filter;
 
 use phspring\core\Bean;
 
-class Request extends Bean
+/**
+ * Class FilterInput
+ * @package phspring\toolbox\filter
+ */
+class FilterInput extends Bean
 {
     /**
      * @var string 当前访问请求的 controller 名称
@@ -49,6 +53,10 @@ class Request extends Bean
      */
     public $ext = null;
 
+    /**
+     * @param $controller
+     * @param $method
+     */
     public function init($controller, $method)
     {
         $this->controller = $controller;
@@ -56,7 +64,7 @@ class Request extends Bean
     }
 
     /**
-     * 对象回收时调用.
+     * collection.
      */
     public function destroy()
     {

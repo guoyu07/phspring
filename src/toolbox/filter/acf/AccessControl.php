@@ -4,7 +4,7 @@
  */
 namespace phspring\toolbox\filter\acf;
 
-use phspring\toolbox\filter\Request;
+use phspring\toolbox\filter\FilterInput;
 
 /**
  * AccessControl provides simple access control based on a set of rules.
@@ -75,12 +75,12 @@ class AccessControl extends ActionFilter
      * You may override this method to do last-minute preparation for the method.
      * @param string $controller the controller.
      * @param string $method the method.
-     * @param Request $request the request object.
+     * @param FilterInput $request the request object.
      * @return bool whether the method should continue to be executed.
      */
-    public function beforeMethod(Request $request)
+    public function beforeMethod(FilterInput $input)
     {
-        $method = $request->method;
+        $method = $input->method;
 
         // 判断配置中设置的 only/except 属性中的 [method,...] 是否应用于当前 method.
         if (!$this->isActive($method)) {
@@ -90,7 +90,7 @@ class AccessControl extends ActionFilter
         $user = $this->user;
         /* @var $rule AccessRule */
         foreach ($this->rules as $rule) {
-            if ($allow = $rule->allows($user, $request)) {
+            if ($allow = $rule->allows($user, $input)) {
                 return true;
             } elseif ($allow === false) {
                 if (isset($rule->denyCallback)) {
@@ -98,7 +98,7 @@ class AccessControl extends ActionFilter
                 } elseif ($this->denyCallback !== null) {
                     call_user_func($this->denyCallback, $rule, $method);
                 } else {
-                    $this->denyAccess($user, $request);
+                    $this->denyAccess($user, $input);
                 }
                 return false;
             }
@@ -106,7 +106,7 @@ class AccessControl extends ActionFilter
         if ($this->denyCallback !== null) {
             call_user_func($this->denyCallback, null, $method);
         } else {
-            $this->denyAccess($user, $request);
+            $this->denyAccess($user, $input);
         }
 
         return false;
@@ -114,12 +114,11 @@ class AccessControl extends ActionFilter
 
     /**
      * Denies the access of the user.
-     * The default implementation will redirect the user to the login page if he is a guest;
-     * if the user is already logged, a 403 HTTP exception will be thrown.
      * @param AccessUser $user the current user
+     * @param FilterInput $input input parameters
      * @throws ForbiddenHttpException if the user is already logged in.
      */
-    protected function denyAccess($user, Request $request)
+    protected function denyAccess($user, FilterInput $input)
     {
         if ($user->getIsGuest()) {
             $user->loginRequired();
