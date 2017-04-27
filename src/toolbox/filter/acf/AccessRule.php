@@ -62,7 +62,7 @@ class AccessRule
         if ($this->matchMethod($input->method)
             && $this->matchRole($user)
             && $this->matchIP($input->ip)
-            && $this->matchVerb($input->method)
+            && $this->matchVerb($input->verb)
             && $this->matchController($input->controller)
             && $this->matchCustom($input->method)
         ) {

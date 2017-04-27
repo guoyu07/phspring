@@ -6,7 +6,7 @@ namespace phspring\toolbox\filter;
 
 /**
  * Interface IFilter
- * @package PG\Filter
+ * @package phspring\toolbox\filter
  */
 interface IFilter
 {

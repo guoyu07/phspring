@@ -17,9 +17,13 @@ class FilterInput extends Bean
      */
     public $controller;
     /**
-     * @var string 当前访问请求的 controller 名称
+     * @var string 当前访问请求的 method 名称
      */
     public $method;
+    /**
+     * @var string The request verb.
+     */
+    public $verb;
     /**
      * @var array 当前访问请求的所有 post 参数
      */
@@ -70,6 +74,7 @@ class FilterInput extends Bean
     {
         $this->controller = null;
         $this->method = null;
+        $this->verb = null;
         $this->post = null;
         $this->get = null;
         $this->request = null;
