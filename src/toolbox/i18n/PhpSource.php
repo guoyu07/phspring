@@ -36,8 +36,8 @@ class PhpSource extends Source
      */
     protected function load($category, $language)
     {
-        $messageFile = $this->getFilePath($category, $language);
-        $messages = $this->loadFromFile($messageFile);
+        $file = $this->getFilePath($category, $language);
+        $messages = $this->loadFromFile($file);
 
         $fallbackLanguage = substr($language, 0, 2);
         if ($fallbackLanguage !== $language) {
@@ -74,26 +74,26 @@ class PhpSource extends Source
     protected function getFilePath($category, $language)
     {
         $suffix = explode('.', $category)[1];
-        $messageFile = $this->basePath . "/$language/";
+        $file = $this->basePath . "/$language/";
         if (isset($this->fileMap[$suffix])) {
-            $messageFile .= $this->fileMap[$suffix];
+            $file .= $this->fileMap[$suffix];
         } else {
-            $messageFile .= str_replace('\\', '/', $suffix) . '.php';
+            $file .= str_replace('\\', '/', $suffix) . '.php';
         }
 
-        return $messageFile;
+        return $file;
     }
 
     /**
      * 从翻译配置文件中加载
      *
-     * @param $messageFile
+     * @param $file
      * @return array|mixed|null
      */
-    protected function loadFromFile($messageFile)
+    protected function loadFromFile($file)
     {
-        if (is_file($messageFile)) {
-            $messages = include($messageFile);
+        if (is_file($file)) {
+            $messages = include($file);
             if (!is_array($messages)) {
                 $messages = [];
             }

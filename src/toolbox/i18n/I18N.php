@@ -6,6 +6,7 @@ namespace phspring\toolbox\i18n;
 
 use phspring\context\Ac;
 use phspring\core\Bean;
+use yii\i18n\Formatter;
 
 /**
  * Class I18N
@@ -17,6 +18,11 @@ class I18n extends Bean
      * @var array
      */
     public $translations = [];
+
+    /**
+     * @var string|array|Formatter
+     */
+    private $_formatter;
 
     /**
      * Initializes the component by configuring the default message categories.
@@ -75,7 +81,7 @@ class I18n extends Bean
     }
 
     /**
-     * Formats a message using [[MessageFormatter]].
+     * Formats a message using [[Formatter]].
      *
      * @param string $message the message to be formatted.
      * @param array $params the parameters that will be used to replace the corresponding placeholders in the message.
@@ -90,6 +96,7 @@ class I18n extends Bean
         }
 
         if (preg_match('~{\s*[\d\w]+\s*,~u', $message)) {
+            /* @var $formatter Formatter */
             $formatter = $this->getFormatter();
             $result = $formatter->format($message, $params, $language);
             if ($result === false) {
@@ -109,11 +116,6 @@ class I18n extends Bean
     }
 
     /**
-     * @var string|array|MessageFormatter
-     */
-    private $_formatter;
-
-    /**
      * Returns the message formatter instance.
      * @return Formatter the message formatter to be used to format message via ICU message format.
      */
@@ -129,9 +131,9 @@ class I18n extends Bean
     }
 
     /**
-     * @param string|array|MessageFormatter $value the message formatter to be used to format message via ICU message format.
+     * @param string|array|Formatter $value the message formatter to be used to format message via ICU message format.
      * Can be given as array or string configuration that will be given to [[Ac::getBean]] to create an instance
-     * or a [[MessageFormatter]] instance.
+     * or a [[Formatter]] instance.
      */
     public function setFormatter($value)
     {

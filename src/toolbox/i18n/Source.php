@@ -67,7 +67,7 @@ class Source extends Bean
     protected function doTranslate($category, $message, $language)
     {
         $cates = explode('.', $category);
-        $key = $cates[0] . '/' . $language . '/' . $cates[1]; // eg: app/en_us/errno
+        $key = $cates[0] . '/' . $language . '/' . $cates[1]; // eg: app/en-US/errno
         if (!isset($this->_messages[$key])) {
             $this->_messages[$key] = $this->load($category, $language);
         }

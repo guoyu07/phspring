@@ -4,13 +4,21 @@
  */
 namespace phspring\toolbox\i18n;
 
+use phspring\core\Bean;
+
 /**
- * Class MessageFormatter
+ * Class Formatter
  * @package phspring\toolbox\i18n
  */
-class MessageFormatter
+class Formatter extends Bean
 {
+    /**
+     * @var int
+     */
     private $_errorCode = 0;
+    /**
+     * @var string
+     */
     private $_errorMessage = '';
 
     /**
@@ -77,7 +85,7 @@ class MessageFormatter
     }
 
     /**
-     * 解析
+     * parse
      *
      * @param string $pattern
      * @param string $message
