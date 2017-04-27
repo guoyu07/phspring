@@ -50,15 +50,15 @@ class MessageFormatter
             return $pattern;
         }
 
-        if (!class_exists('MessageFormatter', false)) {
+        if (!class_exists('Formatter', false)) {
             return $this->fallbackFormat($pattern, $params, $language);
         }
 
-        // replace named arguments (https://github.com/yiisoft/yii2/issues/9678)
+        // replace named arguments
         $pattern = $this->replaceNamedArguments($pattern, $params, $newParams);
         $params = $newParams;
 
-        $formatter = new \MessageFormatter($language, $pattern);
+        $formatter = new \Formatter($language, $pattern);
         if ($formatter === null) {
             $this->_errorCode = intl_get_error_code();
             $this->_errorMessage = 'Message pattern is invalid: ' . intl_get_error_message();
@@ -90,7 +90,7 @@ class MessageFormatter
         $this->_errorCode = 0;
         $this->_errorMessage = '';
 
-        if (!class_exists('MessageFormatter', false)) {
+        if (!class_exists('Formatter', false)) {
             throw new \Exception('You have to install PHP intl extension to use this feature.');
         }
 
@@ -115,7 +115,7 @@ class MessageFormatter
         $pattern = implode('', $tokens);
         $map = array_flip($map);
 
-        $formatter = new \MessageFormatter($language, $pattern);
+        $formatter = new \Formatter($language, $pattern);
         if ($formatter === null) {
             $this->_errorCode = -1;
             $this->_errorMessage = 'Message pattern is invalid.';
@@ -197,7 +197,7 @@ class MessageFormatter
     }
 
     /**
-     * Fallback implementation for MessageFormatter::formatMessage
+     * Fallback implementation for Formatter::formatMessage
      * @param string $pattern The pattern string to insert things into.
      * @param array $args The array of values to insert into the format string
      * @param string $locale The locale to use for formatting locale-dependent parts

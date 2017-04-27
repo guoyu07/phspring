@@ -4,11 +4,13 @@
  */
 namespace phspring\toolbox\i18n;
 
+use phspring\core\Bean;
+
 /**
- * Class MessageSource
+ * Class Source
  * @package phspring\toolbox\i18n
  */
-class MessageSource
+class Source extends Bean
 {
     /**
      * @var boolean whether to force message translation when the source and target languages are the same.
@@ -18,8 +20,11 @@ class MessageSource
     /**
      * @var string the language that the original messages are in. If not set, it will use the value of
      */
-    public $sourceLanguage = 'en-us';
+    public $sourceLanguage = 'en-US';
 
+    /**
+     * @var array
+     */
     private $_messages = [];
 
     /**
@@ -29,7 +34,7 @@ class MessageSource
      * @param string $language 语言
      * @return array
      */
-    protected function loadMessages($category, $language)
+    protected function load($category, $language)
     {
         return [];
     }
@@ -45,7 +50,7 @@ class MessageSource
     public function translate($category, $message, $language)
     {
         if ($this->forceTranslation || $language !== $this->sourceLanguage) {
-            return $this->translateMessage($category, $message, $language);
+            return $this->doTranslate($category, $message, $language);
         } else {
             return false;
         }
@@ -59,12 +64,12 @@ class MessageSource
      * @param string $language 要翻译成的语言
      * @return bool|string
      */
-    protected function translateMessage($category, $message, $language)
+    protected function doTranslate($category, $message, $language)
     {
         $cates = explode('.', $category);
         $key = $cates[0] . '/' . $language . '/' . $cates[1]; // eg: app/en_us/errno
         if (!isset($this->_messages[$key])) {
-            $this->_messages[$key] = $this->loadMessages($category, $language);
+            $this->_messages[$key] = $this->load($category, $language);
         }
         if (isset($this->_messages[$key][$message]) && $this->_messages[$key][$message] !== '') {
             return $this->_messages[$key][$message];

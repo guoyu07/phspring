@@ -57,7 +57,7 @@ class Ac
      * @param $language
      * @return mixed
      */
-    public static function trans($category, $message, $params, $language)
+    public static function trans($category, $message, $params, $language = 'en-US')
     {
         return self::$appContext->i18n->translate($category, $message, $params, $language);
     }

@@ -10,7 +10,11 @@ namespace phspring\toolbox\inotify;
  */
 class InotifyProcess
 {
+    /**
+     * reload sig
+     */
     const RELOAD_SIG = 'reload_sig';
+
     /**
      * @var string
      */
@@ -28,18 +32,26 @@ class InotifyProcess
      */
     public $server;
 
+    /**
+     * InotifyProcess constructor.
+     * @param $server
+     * @throws \Exception
+     */
     public function __construct($server)
     {
-        echo "Start autoReload\n";
+        echo "Start auto reload\n";
         $this->server = $server;
         $this->monitorDir = realpath(ROOT_PATH . '/');
         if (!extension_loaded('inotify')) {
-            throw new \Exception('Non-install inotify ext.');
+            throw new \Exception('Non-install inotify extention.');
         } else {
             $this->monitor();
         }
     }
 
+    /**
+     * monitor
+     */
     public function monitor()
     {
         global $monitorFiles;

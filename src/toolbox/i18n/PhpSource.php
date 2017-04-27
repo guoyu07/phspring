@@ -5,10 +5,10 @@
 namespace phspring\toolbox\i18n;
 
 /**
- * Class PhpMessageSource
+ * Class PhpSource
  * @package phspring\toolbox\i18n
  */
-class PhpMessageSource extends MessageSource
+class PhpSource extends Source
 {
     /**
      * @var string the base path for all translated messages. Defaults to '<DIR>/messages'.
@@ -28,21 +28,21 @@ class PhpMessageSource extends MessageSource
     public $fileMap;
 
     /**
-     * 加载语言
+     * load messages.
      *
-     * @param string $category 分类 eg app.errno
-     * @param string $language 语言
+     * @param string $category category eg app.errno
+     * @param string $language language
      * @return array|mixed|null
      */
-    protected function loadMessages($category, $language)
+    protected function load($category, $language)
     {
-        $messageFile = $this->getMessageFilePath($category, $language);
-        $messages = $this->loadMessagesFromFile($messageFile);
+        $messageFile = $this->getFilePath($category, $language);
+        $messages = $this->loadFromFile($messageFile);
 
         $fallbackLanguage = substr($language, 0, 2);
         if ($fallbackLanguage !== $language) {
-            $fallbackMessageFile = $this->getMessageFilePath($category, $fallbackLanguage);
-            $fallbackMessages = $this->loadMessagesFromFile($fallbackMessageFile);
+            $fallbackFile = $this->getFilePath($category, $fallbackLanguage);
+            $fallbackMessages = $this->loadFromFile($fallbackFile);
 
             if ($messages === null && $fallbackMessages === null && $fallbackLanguage !== $this->sourceLanguage) {
                 // ...
@@ -71,7 +71,7 @@ class PhpMessageSource extends MessageSource
      * @param string $language 语言
      * @return string
      */
-    protected function getMessageFilePath($category, $language)
+    protected function getFilePath($category, $language)
     {
         $suffix = explode('.', $category)[1];
         $messageFile = $this->basePath . "/$language/";
@@ -90,7 +90,7 @@ class PhpMessageSource extends MessageSource
      * @param $messageFile
      * @return array|mixed|null
      */
-    protected function loadMessagesFromFile($messageFile)
+    protected function loadFromFile($messageFile)
     {
         if (is_file($messageFile)) {
             $messages = include($messageFile);
