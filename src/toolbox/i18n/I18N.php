@@ -6,10 +6,9 @@ namespace phspring\toolbox\i18n;
 
 use phspring\context\Ac;
 use phspring\core\Bean;
-use yii\i18n\Formatter;
 
 /**
- * Class I18N
+ * Class I18n
  * @package phspring\toolbox\i18n
  */
 class I18n extends Bean
@@ -57,9 +56,9 @@ class I18n extends Bean
 
     /**
      * 多语言翻译，使用方法如：
-     * 1) I18N::t('common', 'hot', [], 'zh_cn'); // 默认为 app.common
-     * 2) I18N::t('app.common', 'hot', [], 'zh_cn'); // 结果同 1)
-     * 3) I18N::t('msg.a', 'hello', ['{foo}' => 'bar', '{key}' => 'val'], 'ja_jp');
+     * 1) Ac::trans('common', 'hot', [], 'zh_cn'); // 默认为 app.common
+     * 2) Ac::trans('app.common', 'hot', [], 'zh_cn'); // 结果同 1)
+     * 3) Ac::trans('msg.a', 'hello', ['{foo}' => 'bar', '{key}' => 'val'], 'ja_jp');
      * @param string $category
      * @param string $message
      * @param array $params
@@ -71,10 +70,10 @@ class I18n extends Bean
         if (strpos($category, '.') === false) {
             $category = 'app.' . $category;
         }
-        $messageSource = $this->getSource($category);
-        $translation = $messageSource->translate($category, $message, $language);
+        $source = $this->getSource($category);
+        $translation = $source->translate($category, $message, $language);
         if ($translation === false) {
-            return $this->format($message, $params, $messageSource->sourceLanguage);
+            return $this->format($message, $params, $source->sourceLanguage);
         } else {
             return $this->format($translation, $params, $language);
         }

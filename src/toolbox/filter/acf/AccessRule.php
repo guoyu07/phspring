@@ -45,6 +45,9 @@ class AccessRule
      */
     public $denyCallback;
 
+    /**
+     * AccessRule constructor.
+     */
     public function __construct()
     {
     }

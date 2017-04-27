@@ -17,13 +17,10 @@ class PhpSource extends Source
     /**
      * @var array mapping between message categories and the corresponding message file paths.
      * The file paths are relative to [[basePath]]. For example,
-     *
-     * ~~~
      * [
-     *     'core' => 'core.php',
-     *     'ext' => 'extensions.php',
+     *     'common' => 'common.php',
+     *     'other' => 'others.php',
      * ]
-     * ~~~
      */
     public $fileMap;
 

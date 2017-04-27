@@ -14,7 +14,7 @@ use phspring\toolbox\filter\Request;
  * {
  *     return [
  *         'access' => [
- *             'class' => \PG\filter\AccessControl::className(),
+ *             'class' => phspring\toolbox\filter\acf\AccessControl::class,
  *             'only' => ['create', 'update'],
  *             'rules' => [
  *                 // deny all POST requests
@@ -37,40 +37,21 @@ use phspring\toolbox\filter\Request;
 class AccessControl extends ActionFilter
 {
     /**
-     * @var User|array|string the user object representing the authentication status or the ID of the user application component.
+     * @var AccessUser|string
      */
     public $user = 'user';
     /**
-     * @var callable a callback that will be called if the access should be denied
-     * to the current user. If not set, [[denyAccess()]] will be called.
-     *
-     * The signature of the callback should be as follows:
-     *
-     * ```php
-     * function ($rule, $method)
-     * ```
-     *
-     * where `$rule` is the rule that denies the user, and `$method` is the current [[Method|method]] object.
-     * `$rule` can be `null` if access is denied because none of the rules matched.
+     * @var
      */
     public $denyCallback;
     /**
-     * @var array the default configuration of access rules. Individual rule configurations
-     * specified via [[rules]] will take precedence when the same property of the rule is configured.
+     * @var array
      */
     public $ruleConfig = ['class' => 'AccessRule'];
     /**
-     * @var array a list of access rule objects or configuration arrays for creating the rule objects.
-     * If a rule is specified via a configuration array, it will be merged with [[ruleConfig]] first
-     * before it is used for creating the rule object.
-     * @see ruleConfig
+     * @var array
      */
     public $rules = [];
-
-    public static function className()
-    {
-        return get_class();
-    }
 
     /**
      * Initializes the [[rules]] array by instantiating rule objects from configurations.
@@ -127,6 +108,7 @@ class AccessControl extends ActionFilter
         } else {
             $this->denyAccess($user, $request);
         }
+
         return false;
     }
 

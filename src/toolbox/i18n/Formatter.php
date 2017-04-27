@@ -66,7 +66,7 @@ class Formatter extends Bean
         $pattern = $this->replaceNamedArguments($pattern, $params, $newParams);
         $params = $newParams;
 
-        $formatter = new \Formatter($language, $pattern);
+        $formatter = new \MessageFormatter($language, $pattern);
         if ($formatter === null) {
             $this->_errorCode = intl_get_error_code();
             $this->_errorMessage = 'Message pattern is invalid: ' . intl_get_error_message();
