@@ -57,7 +57,7 @@ class AccessRule
      * @param FilterInput $input
      * @return bool|null
      */
-    public function allows($user, FilterInput $input)
+    public function allows(AccessUser $user, FilterInput $input)
     {
         if ($this->matchMethod($input->method)
             && $this->matchRole($user)
@@ -91,10 +91,10 @@ class AccessRule
     }
 
     /**
-     * @param $user
+     * @param AccessUser $user
      * @return bool
      */
-    protected function matchRole($user)
+    protected function matchRole(AccessUser $user)
     {
         if (empty($this->roles)) {
             return true;

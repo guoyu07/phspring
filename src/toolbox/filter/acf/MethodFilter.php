@@ -5,10 +5,10 @@
 namespace phspring\toolbox\filter\acf;
 
 /**
- * Class ActionFilter
+ * Class MethodFilter
  * @package phspring\toolbox\filter\acf
  */
-class ActionFilter
+class MethodFilter
 {
     /**
      * @var array

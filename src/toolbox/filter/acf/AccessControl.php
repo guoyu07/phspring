@@ -34,7 +34,7 @@ use phspring\toolbox\filter\FilterInput;
  * }
  * ```
  */
-class AccessControl extends ActionFilter
+class AccessControl extends MethodFilter
 {
     /**
      * @var AccessUser|string
