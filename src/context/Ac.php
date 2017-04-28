@@ -15,14 +15,14 @@ class Ac
      */
     public static $version = '0.9';
     /**
-     * @var AppContext
+     * @var ApplicationContext
      */
     public static $appContext = null;
 
     /**
-     * @param AppContext $ac
+     * @param ApplicationContext $ac
      */
-    public static function setAppContext(AppContext $appContext)
+    public static function setApplicationContext(ApplicationContext $appContext)
     {
         self::$appContext = $appContext;
     }

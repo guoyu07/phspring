@@ -10,10 +10,10 @@ use phspring\net\pack\JsonPack;
 use phspring\toolbox\config\Configurator;
 
 /**
- * Class AppContext
+ * Class ApplicationContext
  * @package phspring\context
  */
-class AppContext extends BeanFactory
+class ApplicationContext extends BeanFactory
 {
     /**
      * @var int The global increment id
@@ -42,7 +42,7 @@ class AppContext extends BeanFactory
     public $packer = null;
 
     /**
-     * AppContext constructor.
+     * ApplicationContext constructor.
      * @param string $configPath
      */
     public function __construct($configPath)

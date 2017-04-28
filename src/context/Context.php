@@ -71,7 +71,7 @@ class Context
         $time = time() & 0xFFFFFFFF;
         $machine = crc32(substr((string)gethostname(), 0, 256)) >> 8 & 0xFFFFFF;
         $process = Ac::$appContext->pid & 0xFFFF;
-        $id = AppContext::$globalId = AppContext::$globalId > 0xFFFFFE ? 1 : AppContext::$globalId + 1;
+        $id = ApplicationContext::$globalId = ApplicationContext::$globalId > 0xFFFFFE ? 1 : ApplicationContext::$globalId + 1;
 
         return sprintf('%08x%06x%04x%06x', $time, $machine, $process, $id);
     }
