@@ -101,9 +101,9 @@ abstract class Base implements IBase
             return true;
         }
 
-        foreach (Ac::$appContext->scheduler->ioCallback[$uuid] as $key => $coroutine) {
+        foreach (Ac::$appContext->scheduler->ioCallback[$uuid] as $idx => $coroutine) {
             if ($coroutine->ioBack && !empty(Ac::$appContext->scheduler->taskMap[$uuid])) {
-                unset(Ac::$appContext->scheduler->ioCallback[$uuid][$key]);
+                unset(Ac::$appContext->scheduler->ioCallback[$uuid][$idx]);
                 Ac::$appContext->scheduler->schedule(Ac::$appContext->scheduler->taskMap[$uuid]);
             } else {
                 break;

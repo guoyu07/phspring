@@ -12,5 +12,13 @@ use phspring\net\server\protocol\Http;
  */
 class HttpServer extends Server
 {
-
+    /**
+     * HttpServer constructor.
+     * @param string $socketName
+     * @param array $contextOption
+     */
+    public function __construct($socketName, array $contextOption = [])
+    {
+        parent::__construct($socketName, $contextOption);
+    }
 }

@@ -4,7 +4,7 @@
  */
 namespace phspring\net\server\event;
 
-use phspring\net\server\ProcessUtil;
+use phspring\net\server\Util;
 
 /**
  * Class Event
@@ -141,7 +141,7 @@ class Event implements IEvent
         try {
             call_user_func_array($param[0], $param[1]);
         } catch (\Exception|\Error $e) {
-            ProcessUtil::log($e);
+            Util::log($e);
             exit(250);
         }
     }

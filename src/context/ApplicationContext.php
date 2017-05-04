@@ -6,6 +6,9 @@ namespace phspring\context;
 
 use phspring\core\BeanFactory;
 use phspring\coroutine\Scheduler;
+use phspring\mvc\route\IRoute;
+use phspring\mvc\route\Route;
+use phspring\net\pack\IPack;
 use phspring\net\pack\JsonPack;
 use phspring\toolbox\config\Configurator;
 
@@ -40,6 +43,10 @@ class ApplicationContext extends BeanFactory
      * @var \phspring\net\pack\IPack
      */
     public $packer = null;
+    /**
+     * @var \phspring\mvc\route\IRoute
+     */
+    public $router = null;
 
     /**
      * ApplicationContext constructor.
@@ -52,6 +59,7 @@ class ApplicationContext extends BeanFactory
         $this->setPid();
         $this->setI18n();
         $this->setPacker();
+        $this->setRouter();
     }
 
     /**
@@ -84,17 +92,30 @@ class ApplicationContext extends BeanFactory
     /**
      * set coroutine scheduler.
      */
-    public function setCoroutine()
+    public function setScheduler()
     {
         $this->scheduler = new Scheduler();
     }
 
     /**
-     * @param $pack
+     * @param IPack $packer
      */
-    public function setPacker()
+    public function setPacker(IPack $packer = null)
     {
-        $packer = $this->config->get('server.packer', JsonPack::class);
+        if ($packer === null) {
+            $packer = $this->config->get('server.packer', JsonPack::class);
+        }
         $this->packer = new $packer();
+    }
+
+    /**
+     * @param IRoute|null $router
+     */
+    public function setRouter(IRoute $router = null)
+    {
+        if ($router === null) {
+            $router = $this->config->get('server.router', Route::class);
+        }
+        $this->router = new $router();
     }
 }

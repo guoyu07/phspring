@@ -11,6 +11,14 @@ namespace phspring\context;
 class Context
 {
     /**
+     * @var string unique request id
+     */
+    public $uuid = '';
+    /**
+     * @var string log trace id
+     */
+    public $logTraceId = '';
+    /**
      * @var null
      */
     public $input = null;
@@ -22,14 +30,6 @@ class Context
      * @var \phspring\toolbox\log\Log
      */
     public $log = null;
-    /**
-     * @var string log trace id
-     */
-    public $logTraceId = '';
-    /**
-     * @var string unique request id
-     */
-    public $uuid = '';
 
     /**
      * initialize

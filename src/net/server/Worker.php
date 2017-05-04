@@ -177,7 +177,7 @@ class Worker
         // Get uid.
         $user = posix_getpwnam($this->user);
         if (!$user) {
-            ProcessUtil::log("Warning: User {$this->user} not exsits");
+            Util::log("Warning: User {$this->user} not exsits");
             return;
         }
         $uid = $user['uid'];
@@ -185,7 +185,7 @@ class Worker
         if ($this->group) {
             $group = posix_getgrnam($this->group);
             if (!$group) {
-                ProcessUtil::log("Warning: Group {$this->group} not exsits");
+                Util::log("Warning: Group {$this->group} not exsits");
                 return;
             }
             $gid = $group['gid'];
@@ -196,7 +196,7 @@ class Worker
         // Set uid and gid.
         if ($uid != posix_getuid() || $gid != posix_getgid()) {
             if (!posix_setgid($gid) || !posix_initgroups($user['name'], $gid) || !posix_setuid($uid)) {
-                ProcessUtil::log("Warning: change gid or uid fail.");
+                Util::log("Warning: change gid or uid fail.");
             }
         }
     }
@@ -318,7 +318,7 @@ class Worker
         }
 
         // Reinstall signal.
-        ProcessUtil::reinstallSignal();
+        Util::reinstallSignal();
         // Init Timer.
         Timer::init(Manager::$event);
 
@@ -327,7 +327,7 @@ class Worker
             try {
                 call_user_func($this->onWorkerStart, $this);
             } catch (\Exception|\Error $e) {
-                ProcessUtil::log($e);
+                Util::log($e);
                 exit(250);
             }
         }
@@ -348,7 +348,7 @@ class Worker
             try {
                 call_user_func($this->onWorkerStop, $this);
             } catch (\Exception|\Error $e) {
-                ProcessUtil::log($e);
+                Util::log($e);
                 exit(250);
             }
         }
@@ -389,7 +389,7 @@ class Worker
             try {
                 call_user_func($this->onConnect, $connection);
             } catch (\Exception|\Error $e) {
-                ProcessUtil::log($e);
+                Util::log($e);
                 exit(250);
             }
         }
@@ -423,7 +423,7 @@ class Worker
             try {
                 call_user_func($this->onMessage, $connection, $recvBuffer);
             } catch (\Exception|\Error $e) {
-                ProcessUtil::log($e);
+                Util::log($e);
                 exit(250);
             }
         }

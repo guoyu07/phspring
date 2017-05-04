@@ -97,20 +97,25 @@ class Manager
     ];
 
     /**
+     * @var array
+     */
+    private static $_statsData = [];
+
+    /**
      * Run all worker instances.
      * @return void
      */
     public static function run()
     {
-        self::preRun();
-        ProcessUtil::parseCommand();
-        ProcessUtil::daemonize(self::$daemonize);
+        self::prepare();
+        Util::parseCommand();
+        Util::daemonize(self::$daemonize);
         self::initWorkers();
-        ProcessUtil::installSignal();
-        ProcessUtil::saveManagerPid(1, self::$managerPidPath);
+        Util::installSignal();
+        Util::saveManagerPid(1, self::$managerPidPath);
         self::forkWorkers();
-        ProcessUtil::displayUI();
-        ProcessUtil::resetStd();
+        Util::displayUI();
+        Util::resetStd();
         self::monitorWorkers();
     }
 
@@ -140,7 +145,7 @@ class Manager
                 break;
             // Show status.
             case SIGUSR2:
-                ProcessUtil::writeStatisticsToStatusFile();
+                Util::writeStatisticsToStatusFile();
                 break;
         }
     }
@@ -162,7 +167,7 @@ class Manager
         self::$status = Macro::STATUS_SHUTDOWN;
         // For manager process.
         if (self::$managerPid === posix_getpid()) {
-            ProcessUtil::log('phspring[' . basename(self::$startFile) . '] stopping ...');
+            Util::log('phspring[' . basename(self::$startFile) . '] stopping ...');
             $pids = self::getAllWorkerPids();
             foreach ($pids as $pid) {
                 posix_kill($pid, SIGINT);
@@ -178,23 +183,23 @@ class Manager
     }
 
     /**
-     * preRun.
+     * prepare.
      * @return void
      */
-    protected static function preRun()
+    protected static function prepare()
     {
         // Pid file.
-        self::$managerPidPath = ProcessUtil::getPidSavePath();
-        // ProcessUtil title.
-        ProcessUtil::setTitle(Ac::config()->get('server.processTitle'));
+        self::$managerPidPath = Util::getManagerPidSavePath();
+        // Util title.
+        Util::setProcessTitle(Ac::config()->get('server.processTitle'));
         // Stats.
-        ProcessUtil::setStatsData('startTime', time());
+        Util::setStatsData('startTime', time());
         // Init data for worker id.
         self::initWorkerPids();
         // Timer init.
         Timer::init();
         // select a event
-        self::$eventLoop = ProcessUtil::selectEventLoop(self::$eventLoop);
+        self::$eventLoop = Util::choiceEventLoop(self::$eventLoop);
         // set status
         self::$status = Macro::STATUS_STARTING;
     }
@@ -213,9 +218,9 @@ class Manager
                     $errors['type'] === E_COMPILE_ERROR ||
                     $errors['type'] === E_RECOVERABLE_ERROR)
             ) {
-                $errMsg .= ProcessUtil::getErrorType($errors['type']) . " {$errors['message']} in {$errors['file']} on line {$errors['line']}";
+                $errMsg .= Util::getErrorType($errors['type']) . " {$errors['message']} in {$errors['file']} on line {$errors['line']}";
             }
-            ProcessUtil::log($errMsg);
+            Util::log($errMsg);
         }
     }
 
@@ -262,9 +267,9 @@ class Manager
                 $worker->name = 'nobody';
             }
             if (empty($worker->user)) {
-                $worker->user = ProcessUtil::getUserName();
+                $worker->user = Util::getUserName();
             } else {
-                if (posix_getuid() !== 0 && $worker->user != ProcessUtil::getUserName()) {
+                if (posix_getuid() !== 0 && $worker->user != Util::getUserName()) {
                     echo 'Warning: You must have the root privileges to change the uid or gid.';
                 }
             }
@@ -333,19 +338,19 @@ class Manager
                 $worker->listen();
             }
             if (self::$status === Macro::STATUS_STARTING) {
-                ProcessUtil::resetStd();
+                Util::resetStd();
             }
             //self::$workerPidMap = [];???
             self::$workers = [
                 $worker->workerId => $worker
             ];
             Timer::delAll();
-            ProcessUtil::setTitle('Server: worker process  ' . $worker->name . ' ' . $worker->getSocketName());
+            Util::setProcessTitle('Server: worker process  ' . $worker->name . ' ' . $worker->getSocketName());
             $worker->setUserAndGroup();
             $worker->id = $id;
             $worker->run();
             $err = new \Exception('event-loop exited');
-            ProcessUtil::log($err);
+            Util::log($err);
             exit(250);
         } else {
             throw new \Exception("Fork one worker failed.");
@@ -365,7 +370,7 @@ class Manager
             }
         }
         @unlink(self::$managerPidPath);
-        ProcessUtil::log("phspring[" . basename(self::$startFile) . "] has been stopped");
+        Util::log("phspring[" . basename(self::$startFile) . "] has been stopped");
         if (self::$onManagerStop) {
             call_user_func(self::$onManagerStop);
         }
@@ -381,13 +386,13 @@ class Manager
         // For manager process.
         if (self::$managerPid === posix_getpid()) {
             if (self::$status !== Macro::STATUS_RELOADING && self::$status !== Macro::STATUS_SHUTDOWN) {
-                ProcessUtil::log("phspring[" . basename(self::$startFile) . "] reloading");
+                Util::log("phspring[" . basename(self::$startFile) . "] reloading");
                 self::$status = Macro::STATUS_RELOADING;
                 if (self::$onManagerReload) {
                     try {
                         call_user_func(self::$onManagerReload);
                     } catch (\Exception|\Error $e) {
-                        ProcessUtil::log($e);
+                        Util::log($e);
                         exit(250);
                     }
                     self::initWorkerPids();
@@ -428,7 +433,7 @@ class Manager
                 try {
                     call_user_func($worker->onWorkerReload, $worker);
                 } catch (\Exception|\Error $e) {
-                    ProcessUtil::log($e);
+                    Util::log($e);
                     exit(250);
                 }
             }
@@ -457,7 +462,7 @@ class Manager
                     if (in_array($pid, $pids)) {
                         $worker = self::$workers[$workerId];
                         if ($status !== 0) {
-                            ProcessUtil::log("worker[" . $worker->name . ":$pid] exit with status $status");
+                            Util::log("worker[" . $worker->name . ":$pid] exit with status $status");
                         }
 
                         if (!isset(self::$globalStatistics['worker_exit_info'][$workerId][$status])) {

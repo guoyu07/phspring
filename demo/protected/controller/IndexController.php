@@ -4,13 +4,13 @@
  */
 namespace app\controller;
 
-use phspring\mvc\base\Controller;
+use phspring\mvc\Controller;
 
 /**
- * Class Index
+ * Class IndexController
  * @package app\controller
  */
-class Index extends Controller
+class IndexController extends Controller
 {
 
 }

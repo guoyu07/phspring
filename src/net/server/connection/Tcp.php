@@ -7,7 +7,7 @@ namespace phspring\net\server\connection;
 use phspring\net\server\event\IEvent;
 use phspring\net\server\Macro;
 use phspring\net\server\Manager;
-use phspring\net\server\ProcessUtil;
+use phspring\net\server\Util;
 
 /**
  * Class Tcp
@@ -233,7 +233,7 @@ class Tcp extends Connection
                         try {
                             call_user_func($this->onError, $this, Macro::PHSPRING_SEND_FAIL, 'client closed');
                         } catch (\Exception|\Error $e) {
-                            ProcessUtil::log($e);
+                            Util::log($e);
                             exit(250);
                         }
                     }
@@ -415,10 +415,10 @@ class Tcp extends Connection
                     // Decode request buffer before Emitting onMessage callback.
                     call_user_func($this->onMessage, $this, $parser::decode($one_request_buffer, $this));
                 } catch (\Exception $e) {
-                    ProcessUtil::log($e);
+                    Util::log($e);
                     exit(250);
                 } catch (\Error $e) {
-                    ProcessUtil::log($e);
+                    Util::log($e);
                     exit(250);
                 }
             }
@@ -438,10 +438,10 @@ class Tcp extends Connection
         try {
             call_user_func($this->onMessage, $this, $this->recvBuffer);
         } catch (\Exception $e) {
-            ProcessUtil::log($e);
+            Util::log($e);
             exit(250);
         } catch (\Error $e) {
-            ProcessUtil::log($e);
+            Util::log($e);
             exit(250);
         }
         // Clean receive buffer.
@@ -464,10 +464,10 @@ class Tcp extends Connection
                 try {
                     call_user_func($this->onBufferDrain, $this);
                 } catch (\Exception $e) {
-                    ProcessUtil::log($e);
+                    Util::log($e);
                     exit(250);
                 } catch (\Error $e) {
-                    ProcessUtil::log($e);
+                    Util::log($e);
                     exit(250);
                 }
             }
@@ -562,7 +562,7 @@ class Tcp extends Connection
                 try {
                     call_user_func($this->onBufferFull, $this);
                 } catch (\Exception|\Error $e) {
-                    ProcessUtil::log($e);
+                    Util::log($e);
                     exit(250);
                 }
             }
@@ -583,7 +583,7 @@ class Tcp extends Connection
                     call_user_func($this->onError, $this, Macro::PHSPRING_SEND_FAIL,
                         'send buffer full and drop package');
                 } catch (\Exception|\Error $e) {
-                    ProcessUtil::log($e);
+                    Util::log($e);
                     exit(250);
                 }
             }
@@ -618,7 +618,7 @@ class Tcp extends Connection
             try {
                 call_user_func($this->onClose, $this);
             } catch (\Exception|\Error $e) {
-                ProcessUtil::log($e);
+                Util::log($e);
                 exit(250);
             }
         }
@@ -627,7 +627,7 @@ class Tcp extends Connection
             try {
                 call_user_func([$this->protocol, 'onClose'], $this);
             } catch (\Exception|\Error $e) {
-                ProcessUtil::log($e);
+                Util::log($e);
                 exit(250);
             }
         }

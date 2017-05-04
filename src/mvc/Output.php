@@ -12,8 +12,12 @@ use phspring\core\Bean;
  */
 class Output extends Bean
 {
-    public function send()
+    /**
+     * @param $data
+     * @param int $status
+     */
+    public function send($data, $status = 200)
     {
-
+        $data = Ac::$appContext->packer->encode($data);
     }
 }

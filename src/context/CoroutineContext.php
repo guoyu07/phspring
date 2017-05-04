@@ -15,28 +15,28 @@ class CoroutineContext extends Context
      */
     protected $controller;
     /**
-     * @var
+     * @var string
      */
     protected $controllerId;
     /**
-     * @var
+     * @var string
      */
     protected $methodId;
     /**
      * @var array
      */
-    protected $stack;
+    protected $yieldStack;
     /**
      * @var int
      */
-    protected $layer = 0;
+    protected $yieldLayer = 0;
 
     /**
      * CoroutineContext constructor.
      */
     public function __construct()
     {
-        $this->stack = [];
+        $this->yieldStack = [];
     }
 
     /**
@@ -44,8 +44,8 @@ class CoroutineContext extends Context
      */
     public function addYieldStack($number)
     {
-        $this->layer++;
-        $this->stack[$this->layer][] = "| #第 {$this->layer} 层嵌套出错在第 ++$number 个yield后";
+        $this->yieldLayer++;
+        $this->yieldStack[$this->yieldLayer][] = "| #第 {$this->yieldLayer} 层嵌套出错在第 ++$number 个yield后";
     }
 
     /**
@@ -53,7 +53,7 @@ class CoroutineContext extends Context
      */
     public function popYieldStack()
     {
-        array_pop($this->stack);
+        array_pop($this->yieldStack);
     }
 
     /**
@@ -61,7 +61,7 @@ class CoroutineContext extends Context
      */
     public function addYieldStackMessage($number)
     {
-        $this->stack[$this->layer][] = "| #第 {$this->layer} 层嵌套出错在第 ++$number 个yield后";
+        $this->yieldStack[$this->yieldLayer][] = "| #第 {$this->yieldLayer} 层嵌套出错在第 ++$number 个yield后";
     }
 
     /**
@@ -82,16 +82,16 @@ class CoroutineContext extends Context
         $this->controller = $controller;
         $this->controllerId = $controllerId;
         $this->methodId = $methodId;
-        $this->stack[$this->layer][] = "| # Target function-> $controllerId::$methodId";
+        $this->yieldStack[$this->yieldLayer][] = "| # Target function-> $controllerId::$methodId";
     }
 
     /**
-     * get stack trace
+     * get yieldStack trace
      */
     public function getTraceStack()
     {
         $trace = "Coroutine error trace: \n";
-        foreach ($this->stack as $i => $v) {
+        foreach ($this->yieldStack as $i => $v) {
             foreach ($v as $value) {
                 $trace .= "{$value}\n";
             }
@@ -107,7 +107,7 @@ class CoroutineContext extends Context
      */
     public function setErrorFile($file, $line)
     {
-        $this->stack[$this->layer][] = "| # Error file: $file($line)";
+        $this->yieldStack[$this->yieldLayer][] = "| # Error file: $file($line)";
     }
 
     /**
@@ -115,15 +115,15 @@ class CoroutineContext extends Context
      */
     public function setErrorMessage($message)
     {
-        $this->stack[$this->layer][] = "| # Error message: $message";
+        $this->yieldStack[$this->yieldLayer][] = "| # Error message: $message";
     }
 
     /**
-     * 销毁
+     * destory
      */
     public function destroy()
     {
         unset($this->controller);
-        unset($this->stack);
+        unset($this->yieldStack);
     }
 }

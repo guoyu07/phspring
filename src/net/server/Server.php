@@ -86,7 +86,7 @@ class Server extends Worker
             try {
                 call_user_func($this->_onWorkerStart, $this);
             } catch (\Exception|\Error $e) {
-                ProcessUtil::log($e);
+                Util::log($e);
                 exit(250);
             }
         }

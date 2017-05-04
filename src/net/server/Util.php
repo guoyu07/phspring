@@ -8,20 +8,15 @@ use phspring\context\Ac;
 use phspring\net\server\event\IEvent;
 
 /**
- * Class ProcessUtil
+ * Class Util
  * @package phspring\net\server
  */
-class ProcessUtil
+class Util
 {
-    /**
-     * @var array
-     */
-    private static $statsData = [];
-
     /**
      * @param $title
      */
-    public static function setTitle($title)
+    public static function setProcessTitle($title)
     {
         if (function_exists('cli_set_process_title')) {
             @cli_set_process_title($title);
@@ -33,7 +28,7 @@ class ProcessUtil
     /**
      * @return string
      */
-    public static function getPidSavePath()
+    public static function getManagerPidSavePath()
     {
         $dir = Ac::config()->get('server.pidSaveDir');
         if (!is_dir($dir)) {
@@ -49,7 +44,7 @@ class ProcessUtil
      * @param string $eventLoop
      * @return string
      */
-    public static function selectEventLoop($eventLoop)
+    public static function choiceEventLoop($eventLoop)
     {
         if ($eventLoop) {
             return $eventLoop;
@@ -82,7 +77,7 @@ class ProcessUtil
      */
     public static function saveManagerPid($pid, $path)
     {
-        self::$managerPid = posix_getpid();
+        Manager::$managerPid = posix_getpid();
         if (false === @file_put_contents($path, $pid)) {
             throw new \Exception('can not save pid to ' . $path);
         }
