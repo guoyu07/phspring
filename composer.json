@@ -6,26 +6,28 @@
         "PHP socket framework"
     ],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "syyong.x",
+            "email": "syyong.x@gmail.com",
+            "homepage": "https://github.com/syyongx",
+            "role": "Founder and project lead"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/syyongx/PhSpring/issues?state=open",
+        "wiki": "https://github.com/syyongx/PhSpring/wiki/",
+        "source": "https://github.com/syyongx/PhSpring"
+    },
     "type": "library",
     "require": {
-        "php": ">=7.0",
-        "ext-mbstring": "*",
-        "ext-ctype": "*",
-        "lib-pcre": "*"
+        "php": ">=7.0"
     },
     "require-dev": {
     },
     "autoload": {
-        "classmap": [
-            "database"
-        ],
         "psr-4": {
             "phspring\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/"
         }
     },
     "minimum-stability": "dev"
