@@ -110,15 +110,25 @@ class Manager
         self::prepare();
         Util::parseCommand();
         Util::daemonize(self::$daemonize);
+        self::setManagerPid();
+        Util::saveManagerPid(1, self::$managerPidPath);
         self::initWorkers();
         Util::installSignal();
-        Util::saveManagerPid(1, self::$managerPidPath);
         self::forkWorkers();
         Util::displayUI();
         Util::resetStd();
         self::monitorWorkers();
     }
 
+    /**
+     * set manager pid
+     * @param $pid
+     */
+    public static function setManagerPid()
+    {
+        self::$managerPid = posix_getpid();
+    }
+    
     /**
      * Get the event loop instance.
      * @return IEvent
@@ -456,9 +466,9 @@ class Manager
             $pid = pcntl_wait($status, WUNTRACED);
             pcntl_signal_dispatch();
             if ($pid > 0) {
-                //foreach (self::$workerPidMap as $workerId => $pids) {
+                // foreach (self::$workerPidMap as $workerId => $pids) {
                 foreach (self::$workersPids as $workerId => $pids) {
-                    //if (isset($pids[$pid])) {
+                    // if (isset($pids[$pid])) {
                     if (in_array($pid, $pids)) {
                         $worker = self::$workers[$workerId];
                         if ($status !== 0) {
@@ -470,7 +480,7 @@ class Manager
                         }
                         self::$globalStatistics['worker_exit_info'][$workerId][$status]++;
 
-                        //unset(self::$workerPidMap[$workerId][$pid]);
+                        // unset(self::$workerPidMap[$workerId][$pid]);
                         self::$workersPids[$workerId][array_search($pid, $pids)] = 0;
                         break;
                     }

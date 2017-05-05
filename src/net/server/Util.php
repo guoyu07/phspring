@@ -77,7 +77,6 @@ class Util
      */
     public static function saveManagerPid($pid, $path)
     {
-        Manager::$managerPid = posix_getpid();
         if (false === @file_put_contents($path, $pid)) {
             throw new \Exception('can not save pid to ' . $path);
         }
