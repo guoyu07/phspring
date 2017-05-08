@@ -13,20 +13,21 @@ use phspring\net\server\protocol\Http;
 class Server extends Worker
 {
     /**
+     * Mime mapping.
+     * @var array
+     */
+    protected static $mimeTypeMap = [];
+
+    /**
      * Virtual host to path mapping.
      * @var array ['workerman.net'=>'/home', 'www.workerman.net'=>'home/www']
      */
     protected $serverRoot = [];
     /**
-     * Mime mapping.
-     * @var array
-     */
-    protected static $mimeTypeMap = [];
-    /**
      * Used to save user OnWorkerStart callback settings.
      * @var callback
      */
-    protected $_onWorkerStart = null;
+    protected $onWorkerStart = null;
 
     /**
      * Add virtual host.
@@ -44,12 +45,12 @@ class Server extends Worker
      * Construct.
      *
      * @param string $socketName
-     * @param array $contextOption
+     * @param array $options
      */
-    public function __construct($socketName, $contextOption = [])
+    public function __construct($socketName, $options = [])
     {
         list(, $address) = explode(':', $socketName, 2);
-        parent::__construct('http:' . $address, $contextOption);
+        parent::__construct('http:' . $address, $options);
         $this->name = 'Server';
     }
 
@@ -60,7 +61,7 @@ class Server extends Worker
      */
     public function run()
     {
-        $this->_onWorkerStart = $this->onWorkerStart;
+        $this->onWorkerStart = $this->onWorkerStart;
         $this->onWorkerStart = [$this, 'onWorkerStart'];
         $this->onMessage = [$this, 'onMessage'];
         parent::run();
@@ -77,14 +78,12 @@ class Server extends Worker
             throw new \Exception('server root not set, please use WebServer::addRoot($domain, $rootPath) to set server root path');
             exit(250);
         }
-
         // Init mimeMap.
         $this->initMimeTypeMap();
-
-        // Try to emit onWorkerStart callback.
-        if ($this->_onWorkerStart) {
+        // onWorkerStart callback.
+        if ($this->onWorkerStart) {
             try {
-                call_user_func($this->_onWorkerStart, $this);
+                call_user_func($this->onWorkerStart, $this);
             } catch (\Exception|\Error $e) {
                 Util::log($e);
                 exit(250);

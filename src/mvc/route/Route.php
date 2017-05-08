@@ -15,6 +15,11 @@ use phspring\mvc\HttpInput;
 class Route extends Bean implements IRoute
 {
     /**
+     * @var null route cache.
+     */
+    protected static $cache = null;
+
+    /**
      * @var string
      */
     private $_controllerName = '';
@@ -22,6 +27,7 @@ class Route extends Bean implements IRoute
      * @var string
      */
     private $_methodName = '';
+
     /**
      * @var null
      */
@@ -85,5 +91,22 @@ class Route extends Bean implements IRoute
         $this->_params = $httpInput->getQueryParams();
 
         return [$this->_controllerName, $this->_methodName, $this->_params];
+    }
+
+    /**
+     * @param string $key
+     * @param array $val
+     */
+    public function addCache($key, array $val)
+    {
+        self::$cache[$key] = $val;
+    }
+
+    /**
+     * @param $key
+     */
+    public function delCache($key)
+    {
+        unset(self::$cache[$key]);
     }
 }

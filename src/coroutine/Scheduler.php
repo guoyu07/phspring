@@ -5,12 +5,13 @@
 namespace phspring\coroutine;
 
 use phspring\context\CoroutineContext;
+use phspring\core\Bean;
 
 /**
  * Class Scheduler
  * @package phspring\coroutine
  */
-class Scheduler
+class Scheduler extends Bean
 {
     /**
      * @var array
@@ -26,7 +27,7 @@ class Scheduler
     public $taskMap = [];
 
     /**
-     * Scheduler constructor.
+     * Coroutine scheduler constructor.
      */
     public function __construct()
     {

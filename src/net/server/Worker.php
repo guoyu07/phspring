@@ -139,9 +139,9 @@ class Worker
      * Construct.
      *
      * @param string $socketName
-     * @param array $contextOption
+     * @param array $options
      */
-    public function __construct($socketName = '', $contextOption = [])
+    public function __construct($socketName = '', $options = [])
     {
         // Save all worker instances.
         $this->workerId = spl_object_hash($this);
@@ -156,10 +156,10 @@ class Worker
         // Context for socket.
         if ($socketName) {
             $this->socketName = $socketName;
-            if (!isset($contextOption['socket']['backlog'])) {
-                $context_option['socket']['backlog'] = Macro::DEFAULT_BACKLOG;
+            if (!isset($options['socket']['backlog'])) {
+                $options['socket']['backlog'] = Macro::DEFAULT_BACKLOG;
             }
-            $this->socketContext = stream_context_create($contextOption);
+            $this->socketContext = stream_context_create($options);
         }
 
         // Set an empty onMessage callback.

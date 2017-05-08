@@ -5,11 +5,6 @@
 namespace phspring\context;
 
 use phspring\core\BeanFactory;
-use phspring\coroutine\Scheduler;
-use phspring\mvc\route\IRoute;
-use phspring\mvc\route\Route;
-use phspring\net\pack\IPack;
-use phspring\net\pack\JsonPack;
 use phspring\toolbox\config\Configurator;
 
 /**
@@ -55,7 +50,7 @@ class ApplicationContext extends BeanFactory
     public function __construct($configPath)
     {
         $this->setConfig($configPath);
-        parent::__construct($this->config->get('beans', []));
+        parent::__construct($this->config->get('beans'));
         $this->setPid();
         $this->setI18n();
         $this->setPacker();
@@ -65,7 +60,7 @@ class ApplicationContext extends BeanFactory
     /**
      * @param $pid
      */
-    public function setPid()
+    protected function setPid()
     {
         $this->pid = getmypid();
     }
@@ -73,7 +68,7 @@ class ApplicationContext extends BeanFactory
     /**
      * @param $config
      */
-    public function setConfig($config)
+    protected function setConfig($config)
     {
         $this->config = new Configurator($config);
     }
@@ -81,41 +76,32 @@ class ApplicationContext extends BeanFactory
     /**
      * set i18n
      */
-    public function setI18n()
+    protected function setI18n()
     {
-        $i18nConfig = $this->config->get('i18n');
-        if (!empty($i18nConfig)) {
-            $this->i18n = $this->getBean('i18n', $i18nConfig);
-        }
+        $this->i18n = $this->getBean('i18n');
     }
 
     /**
      * set coroutine scheduler.
      */
-    public function setScheduler()
+    protected function setScheduler()
     {
-        $this->scheduler = new Scheduler();
+        $this->scheduler = $this->getBean('scheduler');
     }
 
     /**
-     * @param IPack $packer
+     * @return
      */
-    public function setPacker(IPack $packer = null)
+    protected function setPacker()
     {
-        if ($packer === null) {
-            $packer = $this->config->get('server.packer', JsonPack::class);
-        }
-        $this->packer = new $packer();
+        $this->packer = $this->getBean('packer');
     }
 
     /**
-     * @param IRoute|null $router
+     * @return
      */
-    public function setRouter(IRoute $router = null)
+    protected function setRouter()
     {
-        if ($router === null) {
-            $router = $this->config->get('server.router', Route::class);
-        }
-        $this->router = new $router();
+        $this->router = $this->getBean('router');
     }
 }

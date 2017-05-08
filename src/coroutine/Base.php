@@ -48,7 +48,7 @@ abstract class Base implements IBase
     public function __construct($timeout = 0)
     {
         if (self::$maxTimeout == 0) {
-            self::$maxTimeout = Ac::config()->get('coroution.timeout', 1000);
+            self::$maxTimeout = Ac::config()->get('coroutine.timeout', 1000);
         }
 
         if ($timeout > 0) {

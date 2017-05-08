@@ -20,7 +20,7 @@ class Source extends Bean
     /**
      * @var string the language that the original messages are in. If not set, it will use the value of
      */
-    public $sourceLanguage = 'en-US';
+    public $sourceLang = 'en-US';
 
     /**
      * @var array
@@ -49,7 +49,7 @@ class Source extends Bean
      */
     public function translate($category, $message, $language)
     {
-        if ($this->forceTranslation || $language !== $this->sourceLanguage) {
+        if ($this->forceTranslation || $language !== $this->sourceLang) {
             return $this->doTranslate($category, $message, $language);
         } else {
             return false;

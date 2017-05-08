@@ -15,10 +15,18 @@ class HttpServer extends Server
     /**
      * HttpServer constructor.
      * @param string $socketName
-     * @param array $contextOption
+     * @param array $options
      */
-    public function __construct($socketName, array $contextOption = [])
+    public function __construct($socketName, array $options = [])
     {
-        parent::__construct($socketName, $contextOption);
+        parent::__construct($socketName, $options);
+    }
+
+    /**
+     * run
+     */
+    public function run()
+    {
+        parent::run();
     }
 }

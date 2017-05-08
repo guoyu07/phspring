@@ -41,7 +41,7 @@ class PhpSource extends Source
             $fallbackFile = $this->getFilePath($category, $fallbackLanguage);
             $fallbackMessages = $this->loadFromFile($fallbackFile);
 
-            if ($messages === null && $fallbackMessages === null && $fallbackLanguage !== $this->sourceLanguage) {
+            if ($messages === null && $fallbackMessages === null && $fallbackLanguage !== $this->sourceLang) {
                 // ...
             } elseif (empty($messages)) {
                 return $fallbackMessages;

@@ -21,7 +21,8 @@
     },
     "type": "library",
     "require": {
-        "php": ">=7.0"
+        "php": ">=7.0",
+        "monolog/monolog": "2.0.x-dev"
     },
     "require-dev": {
     },

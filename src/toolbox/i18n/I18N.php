@@ -29,7 +29,7 @@ class I18n extends Bean
      * [
      *     'app' => [
      *         'class' => 'PhpSource', <选填，默认为 PhpSource>
-     *         'sourceLanguage' => 'en_us', <必填>
+     *         'sourceLang' => 'en_us', <必填>
      *         'basePath' => '<DIR>/lang', // 翻译配置文件路径 <必填>
      *         'fileMap' => [ <必填>
      *             'common' => 'common.php',
@@ -38,7 +38,7 @@ class I18n extends Bean
      *     ],
      *     'other' => [
      *         'class' => 'PhpSource', <选填>
-     *         'sourceLanguage' => 'en_us', <必填>
+     *         'sourceLang' => 'en_us', <必填>
      *         'basePath' => '<DIR>/other/lang', // 翻译配置文件路径 <必填>
      *         'fileMap' => [ <必填>
      *             'a' => 'a.php',
@@ -47,15 +47,13 @@ class I18n extends Bean
      *     ]
      * ]
      */
-    public function __construct(array $config)
+    public function init()
     {
-        foreach ($config as $key => $translation) {
-            $this->translations[$key] = $translation;
-        }
+
     }
 
     /**
-     * 多语言翻译，使用方法如：
+     * Mutil language translate, the usage eg.
      * 1) Ac::trans('common', 'hot', [], 'zh_cn'); // 默认为 app.common
      * 2) Ac::trans('app.common', 'hot', [], 'zh_cn'); // 结果同 1)
      * 3) Ac::trans('msg.a', 'hello', ['{foo}' => 'bar', '{key}' => 'val'], 'ja_jp');
@@ -73,7 +71,7 @@ class I18n extends Bean
         $source = $this->getSource($category);
         $translation = $source->translate($category, $message, $language);
         if ($translation === false) {
-            return $this->format($message, $params, $source->sourceLanguage);
+            return $this->format($message, $params, $source->sourceLang);
         } else {
             return $this->format($translation, $params, $language);
         }

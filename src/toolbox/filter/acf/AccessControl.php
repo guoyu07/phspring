@@ -59,15 +59,6 @@ class AccessControl extends MethodFilter
     public function __construct()
     {
         $this->user = new AccessUser();
-        foreach ($this->rules as $i => $rule) {
-            if (is_array($rule)) {
-                $this->rules[$i] = new AccessRule();
-                $props = array_merge($this->ruleConfig, $rule);
-                foreach ($props as $prop => $val) {
-                    $this->rules[$i]->$prop = $val;
-                }
-            }
-        }
     }
 
     /**
@@ -80,36 +71,51 @@ class AccessControl extends MethodFilter
      */
     public function beforeMethod(FilterInput $input)
     {
-        $method = $input->method;
+        $this->initRules();
 
-        // 判断配置中设置的 only/except 属性中的 [method,...] 是否应用于当前 method.
+        $method = $input->method;
         if (!$this->isActive($method)) {
-            return true; // 当前 method 未被激活直接返回验证成功.
+            return true;
         }
 
-        $user = $this->user;
         /* @var $rule AccessRule */
         foreach ($this->rules as $rule) {
-            if ($allow = $rule->allows($user, $input)) {
+            if ($allow = $rule->allows($this->user, $input)) {
                 return true;
             } elseif ($allow === false) {
                 if (isset($rule->denyCallback)) {
-                    call_user_func($rule->denyCallback, $rule, $method);
+                    call_user_func($rule->denyCallback, $this->user, $input);
                 } elseif ($this->denyCallback !== null) {
-                    call_user_func($this->denyCallback, $rule, $method);
+                    call_user_func($this->denyCallback, $this->user, $input);
                 } else {
-                    $this->denyAccess($user, $input);
+                    $this->denyAccess($this->user, $input);
                 }
                 return false;
             }
         }
         if ($this->denyCallback !== null) {
-            call_user_func($this->denyCallback, null, $method);
+            call_user_func($this->denyCallback, null, $input);
         } else {
-            $this->denyAccess($user, $input);
+            $this->denyAccess($this->user, $input);
         }
 
         return false;
+    }
+
+    /**
+     * init rules
+     */
+    protected function initRules()
+    {
+        foreach ($this->rules as $i => $rule) {
+            if (is_array($rule)) {
+                $this->rules[$i] = new AccessRule();
+                $props = array_merge($this->ruleConfig, $rule);
+                foreach ($props as $prop => $val) {
+                    $this->rules[$i]->$prop = $val;
+                }
+            }
+        }
     }
 
     /**

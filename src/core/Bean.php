@@ -14,7 +14,7 @@ class Bean
      * singleton/prototype/request/pool
      * @var string
      */
-    public $scope = 'singleton';
+    public $scope = 'pool';
     /**
      * @var null
      */
