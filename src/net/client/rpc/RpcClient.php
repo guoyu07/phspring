@@ -2,7 +2,7 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\net\pack;
+namespace phspring\net\client\rpc;
 
 /**
  * Class RpcClient

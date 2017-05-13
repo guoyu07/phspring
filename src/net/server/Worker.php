@@ -4,7 +4,6 @@
  */
 namespace phspring\net\server;
 
-use phspring\context\Ac;
 use phspring\net\server\connection\Connection;
 use phspring\net\server\connection\Tcp;
 use phspring\net\server\connection\Udp;
@@ -14,127 +13,8 @@ use phspring\net\server\event\IEvent;
  * Class Worker
  * @package phspring\net\server
  */
-class Worker
+class Worker extends \phspring\net\server\base\Worker
 {
-    /**
-     * class hash id.
-     * @var string
-     */
-    public $workerId = '';
-    /**
-     * @var int
-     */
-    public $id = 0;
-    /**
-     * @var string
-     */
-    public $name = 'nobody';
-    /**
-     * @var int
-     */
-    public $count = 1;
-    /**
-     * Unix user of processes, needs appropriate privileges (usually root).
-     * @var string
-     */
-    public $user = '';
-    /**
-     * Unix group of processes, needs appropriate privileges (usually root).
-     * @var string
-     */
-    public $group = '';
-    /**
-     * reloadable.
-     * @var bool
-     */
-    public $reloadable = true;
-    /**
-     * reuse port.
-     * @var bool
-     */
-    public $reusePort = false;
-    /**
-     * Transport layer protocol.
-     * @var string
-     */
-    public $transport = 'tcp';
-    /**
-     * Store all connections of clients.
-     * @var array
-     */
-    public $connections = [];
-    /**
-     * Application layer protocol.
-     * @var \phspring\net\server\protocol\IProtocol
-     */
-    public $protocol = null;
-    /**
-     * Emitted when worker processes start.
-     * @var callback
-     */
-    public $onWorkerStart = null;
-    /**
-     * Emitted when a socket connection is successfully established.
-     * @var callback
-     */
-    public $onConnect = null;
-    /**
-     * Emitted when data is received.
-     * @var callback
-     */
-    public $onMessage = null;
-    /**
-     * Emitted when the other end of the socket sends a FIN packet.
-     * @var callback
-     */
-    public $onClose = null;
-    /**
-     * Emitted when an error occurs with connection.
-     * @var callback
-     */
-    public $onError = null;
-    /**
-     * Emitted when the send buffer becomes full.
-     * @var callback
-     */
-    public $onBufferFull = null;
-    /**
-     * Emitted when the send buffer becomes empty.
-     * @var callback
-     */
-    public $onBufferDrain = null;
-    /**
-     * Emitted when worker processes stoped.
-     * @var callback
-     */
-    public $onWorkerStop = null;
-    /**
-     * Emitted when worker processes get reload signal.
-     * @var callback
-     */
-    public $onWorkerReload = null;
-
-    /**
-     * Root path for autoload.
-     * @var string
-     */
-    protected $autoloadRootPath = '';
-    /**
-     * Listening socket.
-     * @var resource
-     */
-    protected $mainSocket = null;
-    /**
-     * Socket name. The format is like this http://0.0.0.0:80 .
-     * @var string
-     */
-    protected $socketName = '';
-    /**
-     * Context of socket.
-     * @var resource
-     */
-    protected $socketContext = null;
-
     /**
      * Construct.
      *
@@ -143,62 +23,7 @@ class Worker
      */
     public function __construct($socketName = '', $options = [])
     {
-        // Save all worker instances.
-        $this->workerId = spl_object_hash($this);
-        $this->setCount(Ac::config()->get('server.worker.count', 1));
-        Manager::$workers[$this->workerId] = $this;
-        Manager::$workersPids[$this->workerId] = [];
-
-        // Get autoload root path.
-        $backtrace = debug_backtrace();
-        $this->autoloadRootPath = dirname($backtrace[0]['file']);
-
-        // Context for socket.
-        if ($socketName) {
-            $this->socketName = $socketName;
-            if (!isset($options['socket']['backlog'])) {
-                $options['socket']['backlog'] = Macro::DEFAULT_BACKLOG;
-            }
-            $this->socketContext = stream_context_create($options);
-        }
-
-        // Set an empty onMessage callback.
-        $this->onMessage = function () {
-        };
-    }
-
-    /**
-     * Set unix user and group for current process.
-     *
-     * @return void
-     */
-    public function setUserAndGroup()
-    {
-        // Get uid.
-        $user = posix_getpwnam($this->user);
-        if (!$user) {
-            Util::log("Warning: User {$this->user} not exsits");
-            return;
-        }
-        $uid = $user['uid'];
-        // Get gid.
-        if ($this->group) {
-            $group = posix_getgrnam($this->group);
-            if (!$group) {
-                Util::log("Warning: Group {$this->group} not exsits");
-                return;
-            }
-            $gid = $group['gid'];
-        } else {
-            $gid = $user['gid'];
-        }
-
-        // Set uid and gid.
-        if ($uid != posix_getuid() || $gid != posix_getgid()) {
-            if (!posix_setgid($gid) || !posix_initgroups($user['name'], $gid) || !posix_setuid($uid)) {
-                Util::log("Warning: change gid or uid fail.");
-            }
-        }
+        parent::__construct($socketName, $options);
     }
 
     /**
@@ -211,13 +36,10 @@ class Worker
             return;
         }
 
-        // Autoload.
-        Autoloader::setRootPath($this->autoloadRootPath);
-
         // Get the application layer communication protocol and listening address.
         list($scheme, $address) = explode(':', $this->socketName, 2);
         // Check application layer protocol class.
-        if (!isset(Manager::$builtinTransports[$scheme])) {
+        if (!isset(Manager::$defaultTransports[$scheme])) {
             if (class_exists($scheme)) {
                 $this->protocol = $scheme;
             } else {
@@ -226,18 +48,18 @@ class Worker
                 if (!class_exists($this->protocol)) {
                     $this->protocol = "\\phspring\\net\\server\\protocol\\$scheme";
                     if (!class_exists($this->protocol)) {
-                        throw new Exception("class \\protocol\\$scheme not exist");
+                        throw new \Exception("Class \\protocol\\$scheme not exist");
                     }
                 }
             }
-            if (!isset(Manager::$builtinTransports[$this->transport])) {
+            if (!isset(Manager::$defaultTransports[$this->transport])) {
                 throw new \Exception('Bad worker->transport ' . var_export($this->transport, true));
             }
         } else {
             $this->transport = $scheme;
         }
 
-        $localSocket = Manager::$builtinTransports[$this->transport] . ":" . $address;
+        $localSocket = Manager::$defaultTransports[$this->transport] . ":" . $address;
 
         // Flag.
         $flags = $this->transport === 'udp' ? STREAM_SERVER_BIND : STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
@@ -259,7 +81,7 @@ class Worker
         }
 
         // Try to open keepalive for tcp and disable Nagle algorithm.
-        if (function_exists('socket_import_stream') && Manager::$builtinTransports[$this->transport] === 'tcp') {
+        if (function_exists('socket_import_stream') && Manager::$defaultTransports[$this->transport] === 'tcp') {
             $socket = socket_import_stream($this->mainSocket);
             @socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, 1);
             @socket_set_option($socket, SOL_TCP, TCP_NODELAY, 1);
@@ -270,22 +92,13 @@ class Worker
 
         // Register a listener to be notified when server socket is ready to read.
         if (Manager::$event) {
-            if ($this->transport !== 'udp') {
-                Manager::$event->add($this->mainSocket, IEvent::EV_READ, [$this, 'acceptConnection']);
-            } else {
+            if ($this->transport === 'udp') {
                 Manager::$event->add($this->mainSocket, IEvent::EV_READ,
                     [$this, 'acceptUdpConnection']);
+            } else {
+                Manager::$event->add($this->mainSocket, IEvent::EV_READ, [$this, 'acceptTcpConnection']);
             }
         }
-    }
-
-    /**
-     * Get socket name.
-     * @return string
-     */
-    public function getSocketName()
-    {
-        return $this->socketName ? lcfirst($this->socketName) : 'nobody';
     }
 
     /**
@@ -298,9 +111,7 @@ class Worker
         //Update process state.
         Manager::$status = Macro::STATUS_RUNNING;
         // Register shutdown function for checking errors.
-        register_shutdown_function(["\\phspring\\net\\server\\Worker", 'checkErrors']);
-        // Set autoload root path.
-        Autoloader::setRootPath($this->autoloadRootPath);
+        register_shutdown_function(["\\phspring\\net\\server\\Manager", 'checkErrors']);
         // Create a global event loop.
         if (!Manager::$event) {
             $class = Manager::getEvent(); // ???
@@ -309,7 +120,7 @@ class Worker
             if ($this->socketName) {
                 if ($this->transport !== 'udp') {
                     Manager::$event->add($this->mainSocket, IEvent::EV_READ,
-                        [$this, 'acceptConnection']);
+                        [$this, 'acceptTcpConnection']);
                 } else {
                     Manager::$event->add($this->mainSocket, IEvent::EV_READ,
                         [$this, 'acceptUdpConnection']);
@@ -363,7 +174,7 @@ class Worker
      * @param resource $socket
      * @return void
      */
-    public function acceptConnection($socket)
+    public function acceptTcpConnection($socket)
     {
         // Accept a connection on server socket.
         $newSocket = @stream_socket_accept($socket, 0, $remoteAddress);
@@ -429,13 +240,5 @@ class Worker
         }
 
         return true;
-    }
-
-    /**
-     * @param int $count
-     */
-    public function setCount($count)
-    {
-        $this->count = max(1, (int)$count);
     }
 }

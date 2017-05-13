@@ -57,10 +57,10 @@ class AsyncTcp extends Tcp
      */
     protected $reconnectTimer = null;
     /**
-     * PHP built-in protocols.
+     * PHP default protocols.
      * @var array
      */
-    protected static $builtinTransports = [
+    protected static $defaultTransports = [
         'tcp' => 'tcp',
         'udp' => 'udp',
         'unix' => 'unix',
@@ -105,7 +105,7 @@ class AsyncTcp extends Tcp
 
         $this->id = self::$idRecorder++;
         // Check application layer protocol class.
-        if (!isset(self::$builtinTransports[$scheme])) {
+        if (!isset(self::$defaultTransports[$scheme])) {
             $scheme = ucfirst($scheme);
             $this->protocol = '\\Protocols\\' . $scheme;
             if (!class_exists($this->protocol)) {
@@ -115,7 +115,7 @@ class AsyncTcp extends Tcp
                 }
             }
         } else {
-            $this->transport = self::$builtinTransports[$scheme];
+            $this->transport = self::$defaultTransports[$scheme];
         }
 
         // For statistics.

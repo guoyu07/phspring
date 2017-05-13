@@ -10,318 +10,117 @@ use phspring\context\Ac;
  * Class Manager
  * @package phspring\net\server
  */
-class Manager
+class Manager extends \phspring\net\server\base\Manager
 {
-    /**
-     * Daemonize.
-     * @var bool
-     */
-    public static $daemonize = false;
-    /**
-     * Stdout file.
-     * @var string
-     */
-    public static $stdoutFile = '/dev/null';
-    /**
-     * @var int
-     */
-    public static $managerPid = 0;
-    /**
-     * @var string
-     */
-    public static $managerPidPath = '';
-    /**
-     * @var event\IEvent
-     */
-    public static $event = null;
-    /**
-     * @var string
-     */
-    public static $eventLoop = '';
-    /**
-     * @var callback
-     */
-    public static $onManagerReload = null;
-    /**
-     * @var callback
-     */
-    public static $onManagerStop = null;
-    /**
-     * @var array <Worker, Worker, ...>
-     */
-    public static $workers = [];
-    /**
-     * The format is like this
-     * [
-     *     workerId => [
-     *         pid1 => pid1,
-     *         pid2 => pid2,
-     *     ],
-     * ]
-     * @var array
-     */
-    //public static $workerPidMap = [];
-    /**
-     * The format is like this
-     * [
-     *     workerId => [
-     *         pid1,
-     *         pid2,
-     *     ],
-     * ]
-     * @var array
-     */
-    public static $workersPids = [];
-    /**
-     * The format is like this
-     * [
-     *     pid1 => pid1,
-     *     pid2 => pid2
-     * ].
-     * @var array
-     */
-    public static $pidsForReload = [];
-
-    /**
-     * @var int
-     */
-    public static $status = Macro::STATUS_STARTING;
-    /**
-     * @var array
-     */
-    public static $builtinTransports = [
-        'tcp' => 'tcp',
-        'udp' => 'udp',
-        'unix' => 'unix',
-        'ssl' => 'tcp'
-    ];
-
-    /**
-     * @var array
-     */
-    private static $_statsData = [];
-
     /**
      * Run all worker instances.
      * @return void
      */
     public static function run()
     {
-        self::prepare();
-        Util::parseCommand();
-        Util::daemonize(self::$daemonize);
-        self::setManagerPid();
-        Util::saveManagerPid(1, self::$managerPidPath);
-        self::initWorkers();
-        Util::installSignal();
-        self::forkWorkers();
-        Util::displayUI();
-        Util::resetStd();
-        self::monitorWorkers();
+        parent::run();
     }
 
     /**
-     * set manager pid
-     * @param $pid
-     */
-    public static function setManagerPid()
-    {
-        self::$managerPid = posix_getpid();
-    }
-    
-    /**
-     * Get the event loop instance.
-     * @return IEvent
-     */
-    public static function getEvent()
-    {
-        return self::$event;
-    }
-
-    /**
-     * @param int $signal
-     */
-    public static function signalHandler($signal)
-    {
-        switch ($signal) {
-            // Stop.
-            case SIGINT:
-                self::stopAll();
-                break;
-            // Reload.
-            case SIGUSR1:
-                self::$pidsForReload = self::getAllWorkerPids();
-                self::reload();
-                break;
-            // Show status.
-            case SIGUSR2:
-                Util::writeStatisticsToStatusFile();
-                break;
-        }
-    }
-
-    /**
-     * @return array
-     */
-    public static function getAllWorkers()
-    {
-        return self::$workers;
-    }
-
-    /**
-     * Stop.
+     * Parse command.
+     * php server.php start|stop|restart|reload|status
      * @return void
      */
-    public static function stopAll()
+    public static function parseCommand()
     {
-        self::$status = Macro::STATUS_SHUTDOWN;
-        // For manager process.
-        if (self::$managerPid === posix_getpid()) {
-            Util::log('phspring[' . basename(self::$startFile) . '] stopping ...');
-            $pids = self::getAllWorkerPids();
-            foreach ($pids as $pid) {
-                posix_kill($pid, SIGINT);
-                Timer::add(Macro::KILL_WORKER_TIMER_TIME, 'posix_kill', [$pid, SIGKILL], false);
-            }
-        } else { // For child processes.
-            foreach (self::$workers as $worker) {
-                $worker->stop();
-            }
-            self::$event->destroy();
-            exit(0);
-        }
-    }
-
-    /**
-     * prepare.
-     * @return void
-     */
-    protected static function prepare()
-    {
-        // Pid file.
-        self::$managerPidPath = Util::getManagerPidSavePath();
-        // Util title.
-        Util::setProcessTitle(Ac::config()->get('server.processTitle'));
-        // Stats.
-        Util::setStatsData('startTime', time());
-        // Init data for worker id.
-        self::initWorkerPids();
-        // Timer init.
-        Timer::init();
-        // select a event
-        self::$eventLoop = Util::choiceEventLoop(self::$eventLoop);
-        // set status
-        self::$status = Macro::STATUS_STARTING;
-    }
-
-    /**
-     * @return void
-     */
-    public static function checkErrors()
-    {
-        if (self::$status != Macro::STATUS_SHUTDOWN) {
-            $errMsg = 'WORKER EXIT UNEXPECTED ';
-            $errors = error_get_last();
-            if ($errors && ($errors['type'] === E_ERROR ||
-                    $errors['type'] === E_PARSE ||
-                    $errors['type'] === E_CORE_ERROR ||
-                    $errors['type'] === E_COMPILE_ERROR ||
-                    $errors['type'] === E_RECOVERABLE_ERROR)
-            ) {
-                $errMsg .= Util::getErrorType($errors['type']) . " {$errors['message']} in {$errors['file']} on line {$errors['line']}";
-            }
-            Util::log($errMsg);
-        }
-    }
-
-    /**
-     * @return array
-     * Data structure like this.
-     * [
-     *     pid1 => pid1,
-     *     pid2 => pid2,
-     * ]
-     */
-    public static function getAllWorkerPids()
-    {
-        $all = [];
-
-        foreach (self::$workersPids as $pids) {
-            foreach ($pids as $pid) {
-                if ($pid == 0) {
-                    continue;
-                }
-                $all[$pid] = $pid;
-            }
+        global $argv;
+        // Check argv;
+        $startFile = $argv[0];
+        if (!isset($argv[1])) {
+            $argv[1] = 'start';
+            exit("Usage: php AppServer.php {start|stop|restart|reload|status}\n");
         }
 
-        return $all;
-    }
+        // Get command.
+        $command = trim($argv[1]);
+        $command2 = $argv[2] ?? '';
 
-    /**
-     * @param $worker Worker
-     */
-    public static function getWorkerPids(Worker $worker)
-    {
-        return array_values(array_filter(self::$workersPids[$worker->workerId]));
-    }
-
-    /**
-     * @return void
-     */
-    protected static function initWorkers()
-    {
-        /* @var $worker Worker */
-        foreach (self::$workers as $worker) {
-            if (empty($worker->name)) {
-                $worker->name = 'nobody';
-            }
-            if (empty($worker->user)) {
-                $worker->user = Util::getUserName();
+        // Start command.
+        $mode = '';
+        if ($command === 'start') {
+            if ($command2 === '-d' || self::$daemonize) {
+                $mode = 'in DAEMON mode';
             } else {
-                if (posix_getuid() !== 0 && $worker->user != Util::getUserName()) {
-                    echo 'Warning: You must have the root privileges to change the uid or gid.';
-                }
-            }
-            if (!$worker->reusePort) {
-                $worker->listen();
+                $mode = 'in DEBUG mode';
             }
         }
-    }
+        echo("phspring[$startFile] $command $mode \n");
 
-    /**
-     * Init idMap.
-     * return void
-     */
-    protected static function initWorkerPids()
-    {
-        /* @var $worker Worker */
-        foreach (self::$workers as $workerId => $worker) {
-            $ids = [];
-            for ($i = 0; $i < $worker->count; $i++) {
-                $ids[$i] = self::$workersPids[$workerId][$i] ?? 0;
+        // Get manager process PID.
+        $managerPid = @file_get_contents(Manager::$managerPidPath);
+        $managerIsAlive = $managerPid && @posix_kill($managerPid, 0);
+        // Manager is still alive?
+        if ($managerIsAlive) {
+            if ($command === 'start' && posix_getpid() != $managerPid) {
+                echo("phspring[$startFile] already running");
+                exit;
             }
-            self::$workersPids[$workerId] = $ids;
+        } elseif ($command !== 'start' && $command !== 'restart') {
+            echo("phspring[$startFile] not run");
+            exit;
         }
-    }
 
-    /**
-     * @return void
-     */
-    protected static function forkWorkers()
-    {
-        /* @var $worker Worker */
-        foreach (self::$workers as $worker) {
-            if (self::$status === Macro::STATUS_STARTING) {
-                if (empty($worker->name)) {
-                    $worker->name = $worker->getSocketName();
+        // execute command.
+        switch ($command) {
+            case 'start':
+                if ($command2 === '-d') {
+                    self::$daemonize = true;
                 }
-            }
-
-            //while (count(self::$workerPidMap[$worker->workerId]) < $worker->count) {
-            while (count(self::getWorkerPids($worker)) < $worker->count) {
-                static::forkWorker($worker);
-            }
+                break;
+            case 'status':
+                if (is_file(self::$statFile)) {
+                    @unlink(self::$statisticsFile);
+                }
+                // Manager process will send status signal to all child processes.
+                posix_kill($managerPid, SIGUSR2);
+                // Waiting amoment.
+                usleep(500000);
+                // Display statisitcs data from a disk file.
+                @readfile(self::$statisticsFile);
+                exit(0);
+            case 'restart':
+            case 'stop':
+                echo("phspring[$startFile] is stoping ...");
+                // Send stop signal to manager process.
+                $managerPid && posix_kill($managerPid, SIGINT);
+                // Timeout.
+                $timeout = 5;
+                $startTime = time();
+                // Check manager process is still alive?
+                while (1) {
+                    $managerIsAlive = $managerPid && posix_kill($managerPid, 0);
+                    if ($managerIsAlive) {
+                        // check timeout
+                        if (time() - $startTime >= $timeout) {
+                            echo("phspring[$startFile] stop fail");
+                            exit;
+                        }
+                        // Waiting amoment.
+                        usleep(10000);
+                        continue;
+                    }
+                    // Stop success.
+                    echo("phspring[$startFile] stop success");
+                    if ($command === 'stop') {
+                        exit(0);
+                    }
+                    if ($command2 === '-d') {
+                        Manager::$daemonize = true;
+                    }
+                    break;
+                }
+                break;
+            case 'reload':
+                posix_kill($managerPid, SIGUSR1);
+                echo("phspring[$startFile] reload");
+                exit;
+            default :
+                exit("Usage: php yourfile.php {start|stop|restart|reload|status}\n");
         }
     }
 
@@ -348,14 +147,14 @@ class Manager
                 $worker->listen();
             }
             if (self::$status === Macro::STATUS_STARTING) {
-                Util::resetStd();
+                self::resetStd();
             }
             //self::$workerPidMap = [];???
             self::$workers = [
                 $worker->workerId => $worker
             ];
             Timer::delAll();
-            Util::setProcessTitle('Server: worker process  ' . $worker->name . ' ' . $worker->getSocketName());
+            ProcessHelper::setProcessTitle('Server: worker process  ' . $worker->name . ' ' . $worker->getSocketName());
             $worker->setUserAndGroup();
             $worker->id = $id;
             $worker->run();
@@ -370,31 +169,10 @@ class Manager
     /**
      * @return void
      */
-    protected static function exitAndDestoryAll()
-    {
-        foreach (self::$workers as $worker) {
-            $socketName = $worker->getSocketName();
-            if ($worker->transport === 'unix' && $socketName) {
-                list(, $address) = explode(':', $socketName, 2);
-                @unlink($address);
-            }
-        }
-        @unlink(self::$managerPidPath);
-        Util::log("phspring[" . basename(self::$startFile) . "] has been stopped");
-        if (self::$onManagerStop) {
-            call_user_func(self::$onManagerStop);
-        }
-
-        exit(0);
-    }
-
-    /**
-     * @return void
-     */
     protected static function reload()
     {
         // For manager process.
-        if (self::$managerPid === posix_getpid()) {
+        if (self::$pid === posix_getpid()) {
             if (self::$status !== Macro::STATUS_RELOADING && self::$status !== Macro::STATUS_SHUTDOWN) {
                 Util::log("phspring[" . basename(self::$startFile) . "] reloading");
                 self::$status = Macro::STATUS_RELOADING;
@@ -501,6 +279,86 @@ class Manager
                     self::exitAndDestoryAll();
                 }
             }
+        }
+    }
+
+    /**
+     * @return void
+     */
+    protected static function exitAndDestoryAll()
+    {
+        foreach (self::$workers as $worker) {
+            $socketName = $worker->getSocketName();
+            if ($worker->transport === 'unix' && $socketName) {
+                list(, $address) = explode(':', $socketName, 2);
+                @unlink($address);
+            }
+        }
+        @unlink(self::$pidPath);
+        Util::log("phspring[" . basename(self::$startFile) . "] has been stopped");
+        if (self::$onManagerStop) {
+            call_user_func(self::$onManagerStop);
+        }
+
+        exit(0);
+    }
+
+    /**
+     * @return mixed|string
+     */
+    protected static function setEventName()
+    {
+        if (self::$eventName) {
+            return self::$eventName;
+        }
+        $loopName = '';
+        $availables = [
+            'libevent' => '\phspring\net\server\event\Libevent',
+            'event' => '\phspring\net\server\event\Event'
+        ];
+        foreach ($availables as $name => $class) {
+            if (extension_loaded($name)) {
+                $loopName = $name;
+                break;
+            }
+        }
+
+        if ($loopName) {
+            $eventName = $availables[$loopName];
+        } else {
+            $eventName = '\phspring\net\server\event\Select';
+        }
+
+        return $eventName;
+    }
+
+    /**
+     * Display staring UI.
+     * @return void
+     */
+    protected static function displayUI()
+    {
+        self::safeEcho("\033[1A\n\033[K-----------------------\033[47;30m PhSpring \033[0m-----------------------------\n\033[0m");
+        self::safeEcho('PhSpring version:' . AC::$version . "          PHP version:" . PHP_VERSION . "\n");
+        self::safeEcho("------------------------\033[47;30m Workers \033[0m-------------------------------\n");
+        self::safeEcho("\033[47;30muser\033[0m" . str_pad('',
+                self::$maxUserNameLength + 2 - strlen('user')) . "\033[47;30mworker\033[0m" . str_pad('',
+                self::$maxWorkerNameLength + 2 - strlen('worker')) . "\033[47;30mlisten\033[0m" . str_pad('',
+                self::$maxSocketNameLength + 2 - strlen('listen')) . "\033[47;30mprocesses\033[0m \033[47;30m" . "status\033[0m\n");
+
+        /* @var $worker Worker */
+        foreach (self::$workers as $worker) {
+            self::safeEcho(str_pad($worker->user, self::$maxUserNameLength + 2) . str_pad($worker->name,
+                    self::$maxWorkerNameLength + 2) . str_pad($worker->getSocketName(),
+                    self::$maxSocketNameLength + 2) . str_pad(' ' . $worker->count,
+                    9) . " \033[32;40m [OK] \033[0m\n");
+        }
+        self::safeEcho("----------------------------------------------------------------\n");
+        if (self::$daemonize) {
+            global $argv;
+            self::safeEcho("Input \"php $argv[0] stop\" to quit. Start success.\n\n");
+        } else {
+            self::safeEcho("Press Ctrl-C to quit. Start success.\n");
         }
     }
 }
