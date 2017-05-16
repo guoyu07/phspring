@@ -4,8 +4,6 @@
  */
 namespace phspring\net\server\base;
 
-use phspring\net\server\Macro;
-use phspring\net\server\Manager;
 use phspring\net\server\Util;
 
 /**
