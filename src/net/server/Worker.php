@@ -4,6 +4,7 @@
  */
 namespace phspring\net\server;
 
+use phspring\net\server\base\Macro;
 use phspring\net\server\base\Manager;
 use phspring\net\server\connection\Connection;
 use phspring\net\server\connection\Tcp;
