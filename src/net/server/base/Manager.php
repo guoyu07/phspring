@@ -165,6 +165,26 @@ abstract class Manager
     }
 
     /**
+     * set worker
+     * @param $workId
+     * @param Worker $worker
+     */
+    public static function setWorker($workId, Worker $worker)
+    {
+        self::$workers[$workId] = $worker;
+    }
+
+    /**
+     * set workPids
+     * @param $workId
+     * @param $val
+     */
+    public static function setWorkPids($workId, $val)
+    {
+        self::$workersPids[$workId] = $val;
+    }
+
+    /**
      * @param int $signal
      */
     public static function signalHandler($signal)

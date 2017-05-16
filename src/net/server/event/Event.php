@@ -140,9 +140,8 @@ class Event implements IEvent
 
         try {
             call_user_func_array($param[0], $param[1]);
-        } catch (\Exception|\Error $e) {
-            Util::log($e);
-            exit(250);
+        } catch (\Throwable $e) {
+            Util::log($e) && exit(250);
         }
     }
 

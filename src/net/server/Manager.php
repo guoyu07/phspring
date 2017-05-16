@@ -5,6 +5,7 @@
 namespace phspring\net\server;
 
 use phspring\context\Ac;
+use phspring\toolbox\helper\ProcessHelper;
 
 /**
  * Class Manager
@@ -29,44 +30,40 @@ class Manager extends \phspring\net\server\base\Manager
     public static function parseCommand()
     {
         global $argv;
-        // Check argv;
-        $startFile = $argv[0];
-        if (!isset($argv[1])) {
-            $argv[1] = 'start';
-            exit("Usage: php AppServer.php {start|stop|restart|reload|status}\n");
-        }
+        $file = $argv[0];
+        $argv[1] = $argv[1] ?? 'start';
 
         // Get command.
-        $command = trim($argv[1]);
+        $command1 = trim($argv[1]);
         $command2 = $argv[2] ?? '';
 
         // Start command.
         $mode = '';
-        if ($command === 'start') {
+        if ($command1 === 'start') {
             if ($command2 === '-d' || self::$daemonize) {
                 $mode = 'in DAEMON mode';
             } else {
                 $mode = 'in DEBUG mode';
             }
         }
-        echo("phspring[$startFile] $command $mode \n");
+        echo("phspring[$file] $command1 $mode \n");
 
         // Get manager process PID.
         $managerPid = @file_get_contents(Manager::$managerPidPath);
         $managerIsAlive = $managerPid && @posix_kill($managerPid, 0);
         // Manager is still alive?
         if ($managerIsAlive) {
-            if ($command === 'start' && posix_getpid() != $managerPid) {
-                echo("phspring[$startFile] already running");
+            if ($command1 === 'start' && posix_getpid() != $managerPid) {
+                echo("phspring[$file] already running");
                 exit;
             }
-        } elseif ($command !== 'start' && $command !== 'restart') {
-            echo("phspring[$startFile] not run");
+        } elseif ($command1 !== 'start' && $command1 !== 'restart') {
+            echo("phspring[$file] not run");
             exit;
         }
 
         // execute command.
-        switch ($command) {
+        switch ($command1) {
             case 'start':
                 if ($command2 === '-d') {
                     self::$daemonize = true;
@@ -85,7 +82,7 @@ class Manager extends \phspring\net\server\base\Manager
                 exit(0);
             case 'restart':
             case 'stop':
-                echo("phspring[$startFile] is stoping ...");
+                echo("phspring[$file] is stoping ...");
                 // Send stop signal to manager process.
                 $managerPid && posix_kill($managerPid, SIGINT);
                 // Timeout.
@@ -97,7 +94,7 @@ class Manager extends \phspring\net\server\base\Manager
                     if ($managerIsAlive) {
                         // check timeout
                         if (time() - $startTime >= $timeout) {
-                            echo("phspring[$startFile] stop fail");
+                            echo("phspring[$file] stop fail");
                             exit;
                         }
                         // Waiting amoment.
@@ -105,8 +102,8 @@ class Manager extends \phspring\net\server\base\Manager
                         continue;
                     }
                     // Stop success.
-                    echo("phspring[$startFile] stop success");
-                    if ($command === 'stop') {
+                    echo("phspring[$file] stop success");
+                    if ($command1 === 'stop') {
                         exit(0);
                     }
                     if ($command2 === '-d') {
@@ -117,7 +114,7 @@ class Manager extends \phspring\net\server\base\Manager
                 break;
             case 'reload':
                 posix_kill($managerPid, SIGUSR1);
-                echo("phspring[$startFile] reload");
+                echo("phspring[$file] reload");
                 exit;
             default :
                 exit("Usage: php yourfile.php {start|stop|restart|reload|status}\n");
@@ -159,8 +156,7 @@ class Manager extends \phspring\net\server\base\Manager
             $worker->id = $id;
             $worker->run();
             $err = new \Exception('event-loop exited');
-            Util::log($err);
-            exit(250);
+            Util::log($err) && exit(250);
         } else {
             throw new \Exception("Fork one worker failed.");
         }
@@ -179,9 +175,8 @@ class Manager extends \phspring\net\server\base\Manager
                 if (self::$onManagerReload) {
                     try {
                         call_user_func(self::$onManagerReload);
-                    } catch (\Exception|\Error $e) {
-                        Util::log($e);
-                        exit(250);
+                    } catch (\Throwable $e) {
+                        Util::log($e) && exit(250);
                     }
                     self::initWorkerPids();
                 }
@@ -220,9 +215,8 @@ class Manager extends \phspring\net\server\base\Manager
             if ($worker->onWorkerReload) {
                 try {
                     call_user_func($worker->onWorkerReload, $worker);
-                } catch (\Exception|\Error $e) {
-                    Util::log($e);
-                    exit(250);
+                } catch (\Throwable $e) {
+                    Util::log($e) && exit(250);
                 }
             }
 

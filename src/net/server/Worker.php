@@ -17,11 +17,8 @@ class Worker extends \phspring\net\server\base\Worker
 {
     /**
      * Construct.
-     *
-     * @param string $socketName
-     * @param array $options
      */
-    public function __construct($socketName = '', $options = [])
+    public function __construct($socketName, array $options = [])
     {
         parent::__construct($socketName, $options);
     }
@@ -65,32 +62,22 @@ class Worker extends \phspring\net\server\base\Worker
         $flags = $this->transport === 'udp' ? STREAM_SERVER_BIND : STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
         $errno = 0;
         $errmsg = '';
-        // SO_REUSEPORT.
         if ($this->reusePort) {
             stream_context_set_option($this->socketContext, 'socket', 'so_reuseport', 1);
         }
-
-        // Create an Internet or Unix domain server socket.
         $this->mainSocket = stream_socket_server($localSocket, $errno, $errmsg, $flags, $this->socketContext);
         if (!$this->mainSocket) {
             throw new Exception($errmsg);
         }
-
         if ($this->transport === 'ssl') {
             stream_socket_enable_crypto($this->mainSocket, false);
         }
-
-        // Try to open keepalive for tcp and disable Nagle algorithm.
         if (function_exists('socket_import_stream') && Manager::$defaultTransports[$this->transport] === 'tcp') {
             $socket = socket_import_stream($this->mainSocket);
             @socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, 1);
             @socket_set_option($socket, SOL_TCP, TCP_NODELAY, 1);
         }
-
-        // Non blocking.
         stream_set_blocking($this->mainSocket, 0);
-
-        // Register a listener to be notified when server socket is ready to read.
         if (Manager::$event) {
             if ($this->transport === 'udp') {
                 Manager::$event->add($this->mainSocket, IEvent::EV_READ,
@@ -108,15 +95,11 @@ class Worker extends \phspring\net\server\base\Worker
      */
     public function run()
     {
-        //Update process state.
         Manager::$status = Macro::STATUS_RUNNING;
-        // Register shutdown function for checking errors.
         register_shutdown_function(["\\phspring\\net\\server\\Manager", 'checkErrors']);
-        // Create a global event loop.
         if (!Manager::$event) {
             $class = Manager::getEvent(); // ???
             Manager::$event = new $class;
-            // Register a listener to be notified when server socket is ready to read.
             if ($this->socketName) {
                 if ($this->transport !== 'udp') {
                     Manager::$event->add($this->mainSocket, IEvent::EV_READ,
@@ -127,23 +110,16 @@ class Worker extends \phspring\net\server\base\Worker
                 }
             }
         }
-
-        // Reinstall signal.
         Util::reinstallSignal();
-        // Init Timer.
         Timer::init(Manager::$event);
-
         // Try to emit onWorkerStart callback.
         if ($this->onWorkerStart) {
             try {
                 call_user_func($this->onWorkerStart, $this);
-            } catch (\Exception|\Error $e) {
-                Util::log($e);
-                exit(250);
+            } catch (\Throwable $e) {
+                Util::log($e) && exit(250);
             }
         }
-
-        // Main loop.
         Manager::$event->loop();
     }
 
@@ -158,9 +134,8 @@ class Worker extends \phspring\net\server\base\Worker
         if ($this->onWorkerStop) {
             try {
                 call_user_func($this->onWorkerStop, $this);
-            } catch (\Exception|\Error $e) {
-                Util::log($e);
-                exit(250);
+            } catch (\Throwable $e) {
+                Util::log($e) && exit(250);
             }
         }
         // Remove listener for server socket.
@@ -199,9 +174,8 @@ class Worker extends \phspring\net\server\base\Worker
         if ($this->onConnect) {
             try {
                 call_user_func($this->onConnect, $connection);
-            } catch (\Exception|\Error $e) {
-                Util::log($e);
-                exit(250);
+            } catch (\Throwable $e) {
+                Util::log($e) && exit(250);
             }
         }
     }
@@ -233,9 +207,8 @@ class Worker extends \phspring\net\server\base\Worker
             Connection::$statistics['totalRequest']++;
             try {
                 call_user_func($this->onMessage, $connection, $recvBuffer);
-            } catch (\Exception|\Error $e) {
-                Util::log($e);
-                exit(250);
+            } catch (\Throwable $e) {
+                Util::log($e) && exit(250);
             }
         }
 

@@ -232,9 +232,8 @@ class Tcp extends Connection
                     if ($this->onError) {
                         try {
                             call_user_func($this->onError, $this, Macro::PHSPRING_SEND_FAIL, 'client closed');
-                        } catch (\Exception|\Error $e) {
-                            Util::log($e);
-                            exit(250);
+                        } catch (\Throwable $e) {
+                            Util::log($e) && exit(250);
                         }
                     }
                     $this->destroy();
@@ -338,12 +337,8 @@ class Tcp extends Connection
             if (isset($this->onSslHandshake)) {
                 try {
                     call_user_func($this->onSslHandshake, $this);
-                } catch (\Exception $e) {
-                    self::log($e);
-                    exit(250);
-                } catch (\Error $e) {
-                    self::log($e);
-                    exit(250);
+                } catch (\Throwable $e) {
+                    Util::log($e) && exit(250);
                 }
             }
             $this->sslHandshakeCompleted = true;
@@ -414,12 +409,8 @@ class Tcp extends Connection
                 try {
                     // Decode request buffer before Emitting onMessage callback.
                     call_user_func($this->onMessage, $this, $parser::decode($one_request_buffer, $this));
-                } catch (\Exception $e) {
-                    Util::log($e);
-                    exit(250);
-                } catch (\Error $e) {
-                    Util::log($e);
-                    exit(250);
+                } catch (\Throwable $e) {
+                    Util::log($e) && exit(250);
                 }
             }
             return;
@@ -437,12 +428,8 @@ class Tcp extends Connection
         }
         try {
             call_user_func($this->onMessage, $this, $this->recvBuffer);
-        } catch (\Exception $e) {
-            Util::log($e);
-            exit(250);
-        } catch (\Error $e) {
-            Util::log($e);
-            exit(250);
+        } catch (\Throwable $e) {
+            Util::log($e) && exit(250);
         }
         // Clean receive buffer.
         $this->recvBuffer = '';
@@ -463,12 +450,8 @@ class Tcp extends Connection
             if ($this->onBufferDrain) {
                 try {
                     call_user_func($this->onBufferDrain, $this);
-                } catch (\Exception $e) {
-                    Util::log($e);
-                    exit(250);
-                } catch (\Error $e) {
-                    Util::log($e);
-                    exit(250);
+                } catch (\Throwable $e) {
+                    Util::log($e) && exit(250);
                 }
             }
             if ($this->status === self::STATUS_CLOSING) {
@@ -561,9 +544,8 @@ class Tcp extends Connection
             if ($this->onBufferFull) {
                 try {
                     call_user_func($this->onBufferFull, $this);
-                } catch (\Exception|\Error $e) {
-                    Util::log($e);
-                    exit(250);
+                } catch (\Throwable $e) {
+                    Util::log($e) && exit(250);
                 }
             }
         }
@@ -582,9 +564,8 @@ class Tcp extends Connection
                 try {
                     call_user_func($this->onError, $this, Macro::PHSPRING_SEND_FAIL,
                         'send buffer full and drop package');
-                } catch (\Exception|\Error $e) {
-                    Util::log($e);
-                    exit(250);
+                } catch (\Throwable $e) {
+                    Util::log($e) && exit(250);
                 }
             }
             return true;
@@ -617,18 +598,16 @@ class Tcp extends Connection
         if ($this->onClose) {
             try {
                 call_user_func($this->onClose, $this);
-            } catch (\Exception|\Error $e) {
-                Util::log($e);
-                exit(250);
+            } catch (\Throwable $e) {
+                Util::log($e) && exit(250);
             }
         }
         // Try to emit protocol::onClose
         if (method_exists($this->protocol, 'onClose')) {
             try {
                 call_user_func([$this->protocol, 'onClose'], $this);
-            } catch (\Exception|\Error $e) {
-                Util::log($e);
-                exit(250);
+            } catch (\Throwable $e) {
+                Util::log($e) && exit(250);
             }
         }
         if ($this->status === self::STATUS_CLOSED) {

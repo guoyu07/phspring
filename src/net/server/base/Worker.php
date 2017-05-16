@@ -4,6 +4,7 @@
  */
 namespace phspring\net\server\base;
 
+use phspring\net\server\Macro;
 use phspring\net\server\Manager;
 use phspring\net\server\Util;
 
@@ -129,26 +130,19 @@ abstract class Worker
 
     /**
      * Construct.
-     *
-     * @param string $socketName
-     * @param array $options
      */
-    public function __construct($socketName = '', $options = [])
+    public function __construct($socketName, array $options = [])
     {
         $this->workerId = spl_object_hash($this);
-        $workers = Manager::getAllWorkers();
-        Manager::$workers[$this->workerId] = $this;
-        $workersPids = Manager::getAllWorkerPids();
-        Manager::$workersPids[$this->workerId] = [];
+        Manager::setWorker($this->workerId, $this);
+        Manager::setWorkPids($this->workerId, []);
 
         // Context for socket.
-        if ($socketName) {
-            $this->socketName = $socketName;
-            if (!isset($options['socket']['backlog'])) {
-                $options['socket']['backlog'] = Macro::DEFAULT_BACKLOG;
-            }
-            $this->socketContext = stream_context_create($options);
+        $this->socketName = $socketName;
+        if (!isset($options['socket']['backlog'])) {
+            $options['socket']['backlog'] = Macro::DEFAULT_BACKLOG;
         }
+        $this->socketContext = stream_context_create($options);
     }
 
     /**
@@ -186,12 +180,6 @@ abstract class Worker
     }
 
     /**
-     * Listen port.
-     * @throws Exception
-     */
-    abstract public function listen();
-
-    /**
      * Get socket name.
      * @return string
      */
@@ -199,6 +187,20 @@ abstract class Worker
     {
         return $this->socketName ? lcfirst($this->socketName) : 'nobody';
     }
+
+    /**
+     * @param int $count
+     */
+    public function setCount($count)
+    {
+        $this->count = max(1, (int)$count);
+    }
+
+    /**
+     * Listen port.
+     * @throws Exception
+     */
+    abstract public function listen();
 
     /**
      * Run worker instance.
@@ -229,12 +231,4 @@ abstract class Worker
      * @return bool
      */
     abstract public function acceptUdpConnection($socket);
-
-    /**
-     * @param int $count
-     */
-    public function setCount($count)
-    {
-        $this->count = max(1, (int)$count);
-    }
 }

@@ -4,6 +4,8 @@
  */
 namespace phspring\net\server\event;
 
+use phspring\net\server\Util;
+
 /**
  * Class Libevent
  * Depend on libevent extension. <http://php.net/manual/en/book.libevent.php>
@@ -146,12 +148,8 @@ class Libevent implements IEvent
         }
         try {
             call_user_func_array($this->eventTimer[$timeId][0], $this->eventTimer[$timeId][1]);
-        } catch (\Exception $e) {
-            Worker::log($e);
-            exit(250);
-        } catch (\Error $e) {
-            Worker::log($e);
-            exit(250);
+        } catch (\Throwable $e) {
+            Util::log($e) && exit(250);
         }
         if (isset($this->eventTimer[$timeId]) && $this->eventTimer[$timeId][3] === self::EV_TIMER_ONCE) {
             $this->del($timeId, self::EV_TIMER_ONCE);

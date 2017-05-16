@@ -215,12 +215,8 @@ class AsyncTcp extends Tcp
         if ($this->onError) {
             try {
                 call_user_func($this->onError, $this, $code, $msg);
-            } catch (\Exception $e) {
-                Util::log($e);
-                exit(250);
-            } catch (\Error $e) {
-                Util::log($e);
-                exit(250);
+            } catch (\Throwable $e) {
+                Util::log($e) && exit(250);
             }
         }
     }
@@ -262,21 +258,16 @@ class AsyncTcp extends Tcp
             if ($this->onConnect) {
                 try {
                     call_user_func($this->onConnect, $this);
-                } catch (\Exception $e) {
-                    Util::log($e);
-                    exit(250);
-                } catch (\Error $e) {
-                    Util::log($e);
-                    exit(250);
+                } catch (\Throwable $e) {
+                    Util::log($e) && exit(250);
                 }
             }
             // Try to emit protocol::onConnect
             if (method_exists($this->protocol, 'onConnect')) {
                 try {
                     call_user_func([$this->protocol, 'onConnect'], $this);
-                } catch (\Exception|\Error $e) {
-                    Util::log($e);
-                    exit(250);
+                } catch (\Throwable $e) {
+                    Util::log($e) && exit(250);
                 }
             }
         } else {
