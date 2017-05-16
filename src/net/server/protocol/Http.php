@@ -14,7 +14,13 @@ use phspring\net\server\connection\Tcp;
  */
 class Http implements IProtocol
 {
+    /**
+     * http eof
+     */
     const HTTP_EOF = "\r\n";
+    /**
+     * double http eof
+     */
     const HTTP_EOF_DOUBLE = "\r\n\r\n";
 
     /**

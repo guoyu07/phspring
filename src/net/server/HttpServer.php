@@ -43,7 +43,7 @@ class HttpServer extends Worker
      */
     public function onWorkerStart()
     {
-        
+        echo 'worker start';
     }
 
     /**
@@ -51,6 +51,6 @@ class HttpServer extends Worker
      */
     public function onMessage($connection)
     {
-        
+        echo 'on message';
     }
 }
