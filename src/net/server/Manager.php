@@ -41,12 +41,12 @@ class Manager extends \phspring\net\server\base\Manager
         $mode = '';
         if ($command1 === 'start') {
             if ($command2 === '-d' || self::$daemonize) {
-                $mode = 'in DAEMON mode';
+                $mode = 'in daemon mode';
             } else {
-                $mode = 'in DEBUG mode';
+                $mode = 'in debug mode';
             }
         }
-        echo("phspring[$file] $command1 $mode \n");
+        echo("phspring[$file] $command1 $mode " . PHP_EOL);
 
         // Get manager process PID.
         $managerPid = @file_get_contents(Manager::$managerPidPath);

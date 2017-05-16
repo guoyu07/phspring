@@ -37,7 +37,7 @@ class Configurator
             if (!file_exists($config)) {
                 throw new \Exception('Config file not found.');
             }
-            $content = file_get_contents($config);
+            $content = include_once($config);
             if (!is_array($content)) {
                 throw new InvalidConfigException('Config format invalid.');
             }

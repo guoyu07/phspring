@@ -2,11 +2,11 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\net\server;
+namespace phspring\net\server\base;
 
 /**
  * Class Macro
- * @package phspring\net\server
+ * @package phspring\net\server\base
  */
 class Macro
 {

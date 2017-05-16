@@ -67,7 +67,7 @@ class BeanFactory
     public function initBeans(array $beans)
     {
         foreach ($beans as $name => $definition) {
-            $definition = $this->formatDefinition($definition);
+            $definition = $this->formatDefinition($name, $definition);
             $this->setBean($name, $definition);
         }
     }
@@ -252,7 +252,7 @@ class BeanFactory
         }
 
         $refs = [];
-        $reflection = new ReflectionClass($class);
+        $reflection = new \ReflectionClass($class);
         $constructor = $reflection->getConstructor();
         if ($constructor !== null) {
             foreach ($constructor->getParameters() as $param) {

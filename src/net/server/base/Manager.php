@@ -6,8 +6,8 @@ namespace phspring\net\server\base;
 
 use phspring\context\Ac;
 use phspring\net\server\event\IEvent;
-use phspring\net\server\Macro;
 use phspring\net\server\Timer;
+use phspring\net\server\Util;
 use phspring\toolbox\helper\ProcessHelper;
 
 /**
