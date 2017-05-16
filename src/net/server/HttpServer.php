@@ -32,7 +32,6 @@ class HttpServer extends Worker
      */
     public function run()
     {
-        $this->onWorkerStart = $this->onWorkerStart;
         $this->onWorkerStart = [$this, 'onWorkerStart'];
         $this->onMessage = [$this, 'onMessage'];
         parent::run();
