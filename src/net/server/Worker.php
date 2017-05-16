@@ -98,7 +98,8 @@ class Worker extends \phspring\net\server\base\Worker
         Manager::$status = Macro::STATUS_RUNNING;
         register_shutdown_function([$this, 'shutdownHandler']);
         if (!Manager::getGlobalEvent()) {
-            Manager::setGlobalEvent(new (Manager::getEventName()));
+            $event = Manager::getEventName();
+            Manager::setGlobalEvent(new $event);
             if ($this->transport === 'udp') {
                 Manager::getGlobalEvent()->add($this->mainSocket, IEvent::EV_READ,
                     [$this, 'acceptUdpConnection']);
