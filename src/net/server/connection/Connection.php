@@ -37,13 +37,6 @@ abstract class  Connection
     public $onError = null;
 
     /**
-     * Sends data on the connection.
-     * @param string $send_buffer
-     * @return void|boolean
-     */
-    abstract public function send($sendBuffer);
-
-    /**
      * Get remote IP.
      * @return string
      */
@@ -54,6 +47,13 @@ abstract class  Connection
      * @return int
      */
     abstract public function getRemotePort();
+
+    /**
+     * Sends data on the connection.
+     * @param string $send_buffer
+     * @return void|boolean
+     */
+    abstract public function send($sendBuffer);
 
     /**
      * Close connection.

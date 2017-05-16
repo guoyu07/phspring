@@ -5,6 +5,7 @@
 namespace phspring\net\server\protocol;
 
 use phspring\context\Ac;
+use phspring\net\server\connection\Connection;
 use phspring\net\server\connection\Tcp;
 
 /**
@@ -13,6 +14,9 @@ use phspring\net\server\connection\Tcp;
  */
 class Http implements IProtocol
 {
+    const HTTP_EOF = "\r\n";
+    const HTTP_EOF_DOUBLE = "\r\n\r\n";
+
     /**
      * The supported HTTP methods
      * @var array
@@ -30,12 +34,12 @@ class Http implements IProtocol
      * Check the integrity of the package.
      *
      * @param string $recvBuffer
-     * @param Tcp $connection
+     * @param Connection $connection
      * @return int
      */
-    public static function input($recvBuffer, Tcp $connection)
+    public static function input($recvBuffer, Connection $connection)
     {
-        if (!strpos($recvBuffer, "\r\n\r\n")) {
+        if (!strpos($recvBuffer, self::HTTP_EOF_DOUBLE)) {
             // Judge whether the package length exceeds the limit.
             if (strlen($recvBuffer) >= Tcp::$maxPackageSize) {
                 $connection->close();
@@ -44,13 +48,13 @@ class Http implements IProtocol
             return 0;
         }
 
-        list($header,) = explode("\r\n\r\n", $recvBuffer, 2);
+        list($header,) = explode(self::HTTP_EOF_DOUBLE, $recvBuffer, 2);
         $method = substr($header, 0, strpos($header, ' '));
 
         if (in_array($method, static::$methods)) {
             return static::getRequestSize($header, $method);
         } else {
-            $connection->send("HTTP/1.1 400 Bad Request\r\n\r\n", true);
+            $connection->send("HTTP/1.1 400 Bad Request" . self::HTTP_EOF_DOUBLE, true);
             return 0;
         }
     }
@@ -82,7 +86,7 @@ class Http implements IProtocol
      * @param Tcp $connection
      * @return array
      */
-    public static function decode($recvBuffer, Tcp $connection)
+    public static function decode($recvBuffer, Connection $connection)
     {
         // Init.
         $_POST = $_GET = $_COOKIE = $_REQUEST = $_SESSION = $_FILES = [];
@@ -113,8 +117,8 @@ class Http implements IProtocol
         ];
 
         // Parse headers.
-        list($httpHeader, $httpBody) = explode("\r\n\r\n", $recvBuffer, 2);
-        $headerData = explode("\r\n", $httpHeader);
+        list($httpHeader, $httpBody) = explode(self::HTTP_EOF_DOUBLE, $recvBuffer, 2);
+        $headerData = explode(self::HTTP_EOF, $httpHeader);
 
         list($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_SERVER['SERVER_PROTOCOL']) = explode(' ',
             $headerData[0]);
@@ -203,31 +207,31 @@ class Http implements IProtocol
      * @param Tcp $connection
      * @return string
      */
-    public static function encode($content, Tcp $connection)
+    public static function encode($content, Connection $connection)
     {
         // Default http-code.
         if (!isset(HttpCache::$header['Http-Code'])) {
-            $header = "HTTP/1.1 200 OK\r\n";
+            $header = "HTTP/1.1 200 OK" . self::HTTP_EOF;
         } else {
-            $header = HttpCache::$header['Http-Code'] . "\r\n";
+            $header = HttpCache::$header['Http-Code'] . self::HTTP_EOF;
             unset(HttpCache::$header['Http-Code']);
         }
         // Content-Type
         if (!isset(HttpCache::$header['Content-Type'])) {
-            $header .= "Content-Type: text/html;charset=utf-8\r\n";
+            $header .= "Content-Type: text/html;charset=utf-8" . self::HTTP_EOF;
         }
         // other headers
         foreach (HttpCache::$header as $key => $item) {
             if ('Set-Cookie' === $key && is_array($item)) {
                 foreach ($item as $it) {
-                    $header .= $it . "\r\n";
+                    $header .= $it . self::HTTP_EOF;
                 }
             } else {
-                $header .= $item . "\r\n";
+                $header .= $item . self::HTTP_EOF;
             }
         }
         // header
-        $header .= "Server: phspring/" . Ac::$version . "\r\nContent-Length: " . strlen($content) . "\r\n\r\n";
+        $header .= "Server: phspring/" . Ac::$version . self::HTTP_EOF . "Content-Length: " . strlen($content) . self::HTTP_EOF_DOUBLE;
         // save session
         self::sessionWriteClose();
         // the whole http package
@@ -247,7 +251,7 @@ class Http implements IProtocol
         if (strpos($content, 'HTTP') === 0) {
             $key = 'Http-Code';
         } else {
-            $key = strstr($content, ":", true);
+            $key = strstr($content, ':', true);
             if (empty($key)) {
                 return false;
             }
@@ -258,7 +262,7 @@ class Http implements IProtocol
         }
 
         if (isset(HttpCache::$codes[$httpResponseCode])) {
-            HttpCache::$header['Http-Code'] = "HTTP/1.1 $httpResponseCode " . HttpCache::$codes[$httpResponseCode];
+            HttpCache::$header['Http-Code'] = 'HTTP/1.1 $httpResponseCode ' . HttpCache::$codes[$httpResponseCode];
             if ($key === 'Http-Code') {
                 return true;
             }
@@ -297,7 +301,7 @@ class Http implements IProtocol
      * @param string $path
      * @param string $domain
      * @param bool $secure
-     * @param bool $HTTPOnly
+     * @param bool $httpOnly
      * @return bool|void
      */
     public static function setcookie(
@@ -307,10 +311,10 @@ class Http implements IProtocol
         $path = '',
         $domain = '',
         $secure = false,
-        $HTTPOnly = false
+        $httpOnly = false
     ) {
         if (PHP_SAPI != 'cli') {
-            return setcookie($name, $value, $maxage, $path, $domain, $secure, $HTTPOnly);
+            return setcookie($name, $value, $maxage, $path, $domain, $secure, $httpOnly);
         }
         return self::header(
             'Set-Cookie: ' . $name . '=' . rawurlencode($value)
@@ -318,7 +322,7 @@ class Http implements IProtocol
             . (empty($maxage) ? '' : '; Max-Age=' . $maxage)
             . (empty($path) ? '' : '; Path=' . $path)
             . (!$secure ? '' : '; Secure')
-            . (!$HTTPOnly ? '' : '; HttpOnly'), false);
+            . (!$httpOnly ? '' : '; HttpOnly'), false);
     }
 
     /**
@@ -335,7 +339,7 @@ class Http implements IProtocol
         self::tryGcSessions();
 
         if (HttpCache::$instance->sessionStarted) {
-            echo "already sessionStarted\n";
+            echo "already sessionStarted" . PHP_EOL;
             return true;
         }
         HttpCache::$instance->sessionStarted = true;
@@ -429,12 +433,12 @@ class Http implements IProtocol
     protected static function parseUploadFiles($httpBody, $httpPostBoundary)
     {
         $httpBody = substr($httpBody, 0, strlen($httpBody) - (strlen($httpPostBoundary) + 4));
-        $boundaryDataArr = explode($httpPostBoundary . "\r\n", $httpBody);
+        $boundaryDataArr = explode($httpPostBoundary . self::HTTP_EOF, $httpBody);
         if ($boundaryDataArr[0] === '') {
             unset($boundaryDataArr[0]);
         }
         foreach ($boundaryDataArr as $boundaryDataBuffer) {
-            list($boundaryHeaderBuffer, $boundaryValue) = explode("\r\n\r\n", $boundaryDataBuffer, 2);
+            list($boundaryHeaderBuffer, $boundaryValue) = explode(self::HTTP_EOF_DOUBLE, $boundaryDataBuffer, 2);
             // Remove \r\n from the end of buffer.
             $boundaryValue = substr($boundaryValue, 0, -2);
             $key = -1;

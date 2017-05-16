@@ -39,7 +39,7 @@ class Timer
         if ($event) {
             self::$_event = $event;
         } else {
-            pcntl_signal(SIGALRM, ['phspring\net\server\Timer', 'signalHandle'], false);
+            pcntl_signal(SIGALRM, [Timer::class, 'signalHandle'], false);
         }
     }
 

@@ -22,15 +22,15 @@ interface IProtocol
 
     /**
      * @param Connection $connection
-     * @param string $recvBuffer
-     * @return mixed
-     */
-    public static function decode($recvBuffer, Connection $connection);
-
-    /**
-     * @param Connection $connection
      * @param mixed $data
      * @return string
      */
     public static function encode($data, Connection $connection);
+
+    /**
+     * @param Connection $connection
+     * @param string $recvBuffer
+     * @return mixed
+     */
+    public static function decode($recvBuffer, Connection $connection);
 }

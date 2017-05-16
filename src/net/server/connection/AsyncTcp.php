@@ -73,16 +73,16 @@ class AsyncTcp extends Tcp
     /**
      * Construct.
      *
-     * @param string $remoteAddress
+     * @param string $remoteAddr
      * @param array $contextOption
      * @throws \Exception
      */
-    public function __construct($remoteAddress, $contextOption = null)
+    public function __construct($remoteAddr, $contextOption = null)
     {
-        $addressInfo = parse_url($remoteAddress);
+        $addressInfo = parse_url($remoteAddr);
         if (!$addressInfo) {
-            list($scheme, $this->remoteAddress) = explode(':', $remoteAddress, 2);
-            if (!$this->remoteAddress) {
+            list($scheme, $this->remoteAddr) = explode(':', $remoteAddr, 2);
+            if (!$this->remoteAddr) {
                 echo new \Exception('Bad remote_address');
             }
         } else {
@@ -97,7 +97,7 @@ class AsyncTcp extends Tcp
             } else {
                 $addressInfo['query'] = '?' . $addressInfo['query'];
             }
-            $this->remoteAddress = "{$addressInfo['host']}:{$addressInfo['port']}";
+            $this->remoteAddr = "{$addressInfo['host']}:{$addressInfo['port']}";
             $this->remoteHost = $addressInfo['host'];
             $this->remoteURI = "{$addressInfo['path']}{$addressInfo['query']}";
             $scheme = isset($addressInfo['scheme']) ? $addressInfo['scheme'] : 'tcp';
@@ -107,11 +107,11 @@ class AsyncTcp extends Tcp
         // Check application layer protocol class.
         if (!isset(self::$defaultTransports[$scheme])) {
             $scheme = ucfirst($scheme);
-            $this->protocol = '\\Protocols\\' . $scheme;
+            $this->protocol = '\\protocols\\' . $scheme;
             if (!class_exists($this->protocol)) {
                 $this->protocol = "\\phspring\\net\\server\\protocol\\$scheme";
                 if (!class_exists($this->protocol)) {
-                    throw new \Exception("class \\Protocols\\$scheme not exist");
+                    throw new \Exception("class \\protocols\\$scheme not exist");
                 }
             }
         } else {
@@ -141,10 +141,10 @@ class AsyncTcp extends Tcp
         // Open socket connection asynchronously.
         if ($this->contextOption) {
             $context = stream_context_create($this->contextOption);
-            $this->socket = stream_socket_client("{$this->transport}://{$this->remoteAddress}", $errno, $errstr, 0,
+            $this->socket = stream_socket_client("{$this->transport}://{$this->remoteAddr}", $errno, $errstr, 0,
                 STREAM_CLIENT_ASYNC_CONNECT, $context);
         } else {
-            $this->socket = stream_socket_client("{$this->transport}://{$this->remoteAddress}", $errno, $errstr, 0,
+            $this->socket = stream_socket_client("{$this->transport}://{$this->remoteAddr}", $errno, $errstr, 0,
                 STREAM_CLIENT_ASYNC_CONNECT);
         }
         // If failed attempt to emit onError callback.
@@ -159,7 +159,7 @@ class AsyncTcp extends Tcp
             return;
         }
         // Add socket to global event loop waiting connection is successfully established or faild.
-        Manager::$event->add($this->socket, IEvent::EV_WRITE, [$this, 'checkConnection']);
+        Manager::getGlobalEvent()->add($this->socket, IEvent::EV_WRITE, [$this, 'checkConnection']);
     }
 
     /**
@@ -229,11 +229,9 @@ class AsyncTcp extends Tcp
      */
     public function checkConnection($socket)
     {
-        // Check socket state.
         if ($address = stream_socket_get_name($socket, true)) {
             // Remove write listener.
-            Manager::$event->del($socket, IEvent::EV_WRITE);
-            // Nonblocking.
+            Manager::getGlobalEvent()->del($socket, IEvent::EV_WRITE);
             stream_set_blocking($socket, 0);
             // Compatible with hhvm
             if (function_exists('stream_set_read_buffer')) {
@@ -246,15 +244,14 @@ class AsyncTcp extends Tcp
                 socket_set_option($raw_socket, SOL_TCP, TCP_NODELAY, 1);
             }
             // Register a listener waiting read event.
-            Manager::$event->add($socket, IEvent::EV_READ, [$this, 'baseRead']);
+            Manager::getGlobalEvent()->add($socket, IEvent::EV_READ, [$this, 'baseRead']);
             // There are some data waiting to send.
             if ($this->sendBuffer) {
-                Manager::$event->add($socket, IEvent::EV_WRITE, [$this, 'baseWrite']);
+                Manager::getGlobalEvent()->add($socket, IEvent::EV_WRITE, [$this, 'baseWrite']);
             }
             $this->status = self::STATUS_ESTABLISH;
-            $this->remoteAddress = $address;
+            $this->remoteAddr = $address;
 
-            // Try to emit onConnect callback.
             if ($this->onConnect) {
                 try {
                     call_user_func($this->onConnect, $this);
@@ -262,7 +259,7 @@ class AsyncTcp extends Tcp
                     Util::log($e) && exit(250);
                 }
             }
-            // Try to emit protocol::onConnect
+
             if (method_exists($this->protocol, 'onConnect')) {
                 try {
                     call_user_func([$this->protocol, 'onConnect'], $this);
@@ -273,7 +270,7 @@ class AsyncTcp extends Tcp
         } else {
             // Connection failed.
             $this->emitError(Macro::PHSPRING_CONNECT_FAIL,
-                'connect ' . $this->remoteAddress . ' fail after ' . round(microtime(true) - $this->connectStartTime,
+                'connect ' . $this->remoteAddr . ' fail after ' . round(microtime(true) - $this->connectStartTime,
                     4) . ' seconds');
             if ($this->status === self::STATUS_CLOSING) {
                 $this->destroy();

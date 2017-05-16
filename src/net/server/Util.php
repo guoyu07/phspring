@@ -110,11 +110,11 @@ class Util
      */
     public static function log($msg)
     {
-        $msg = $msg . "\n";
-        if (!Manager::$daemonize) {
+        $msg .= PHP_EOL;
+        if (!Manager::getDaemonize()) {
             self::safeEcho($msg);
         }
-        file_put_contents((string)self::$logFile, date('Y-m-d H:i:s') . ' ' . 'pid:' . posix_getpid() . ' ' . $msg,
+        file_put_contents(Manager::getLogFile(), date('Y-m-d H:i:s') . ' ' . 'pid:' . posix_getpid() . ' ' . $msg,
             FILE_APPEND | LOCK_EX);
 
         return true;

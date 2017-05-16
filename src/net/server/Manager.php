@@ -4,7 +4,7 @@
  */
 namespace phspring\net\server;
 
-use phspring\context\Ac;
+use phspring\net\server\event\Event;
 use phspring\toolbox\helper\ProcessHelper;
 
 /**
@@ -281,6 +281,7 @@ class Manager extends \phspring\net\server\base\Manager
      */
     protected static function exitAndDestoryAll()
     {
+        /* @var $worker Worker */
         foreach (self::$workers as $worker) {
             $socketName = $worker->getSocketName();
             if ($worker->transport === 'unix' && $socketName) {
@@ -307,8 +308,8 @@ class Manager extends \phspring\net\server\base\Manager
         }
         $loopName = '';
         $availables = [
-            'libevent' => '\phspring\net\server\event\Libevent',
-            'event' => '\phspring\net\server\event\Event'
+            'libevent' => Libevent::class,
+            'event' => Event::class
         ];
         foreach ($availables as $name => $class) {
             if (extension_loaded($name)) {

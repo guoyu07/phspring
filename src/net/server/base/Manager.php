@@ -5,6 +5,8 @@
 namespace phspring\net\server\base;
 
 use phspring\context\Ac;
+use phspring\net\server\event\IEvent;
+use phspring\net\server\Macro;
 use phspring\net\server\Timer;
 use phspring\toolbox\helper\ProcessHelper;
 
@@ -51,7 +53,7 @@ abstract class Manager
      */
     protected static $pidPath = '';
     /**
-     * @var event\IEvent
+     * @var IEvent
      */
     protected static $globalEvent = null;
     /**
@@ -121,6 +123,15 @@ abstract class Manager
     }
 
     /**
+     * get manager run as daemonize mode
+     * @return bool
+     */
+    public static function getDaemonize()
+    {
+        return self::$daemonize;
+    }
+    
+    /**
      * set manager pid
      * @param $pid
      */
@@ -185,28 +196,6 @@ abstract class Manager
     }
 
     /**
-     * @param int $signal
-     */
-    public static function signalHandler($signal)
-    {
-        switch ($signal) {
-            // Stop.
-            case SIGINT:
-                self::stopAll();
-                break;
-            // Reload.
-            case SIGUSR1:
-                self::$pidsForReload = self::getAllWorkerPids();
-                self::reload();
-                break;
-            // Show status.
-            case SIGUSR2:
-                Util::writeStatisticsToStatusFile();
-                break;
-        }
-    }
-
-    /**
      * @return array
      */
     public static function getAllWorkers()
@@ -244,6 +233,28 @@ abstract class Manager
     public static function getWorkerPids(Worker $worker)
     {
         return array_values(array_filter(self::$workersPids[$worker->workerId]));
+    }
+
+    /**
+     * @param int $signal
+     */
+    public static function signalHandler($signal)
+    {
+        switch ($signal) {
+            // Stop.
+            case SIGINT:
+                self::stopAll();
+                break;
+            // Reload.
+            case SIGUSR1:
+                self::$pidsForReload = self::getAllWorkerPids();
+                self::reload();
+                break;
+            // Show status.
+            case SIGUSR2:
+                Util::writeStatisticsToStatusFile();
+                break;
+        }
     }
 
     /**
@@ -292,7 +303,7 @@ abstract class Manager
      *
      * @return void
      */
-    public static function reinstallSignal($event)
+    public static function reinstallSignal()
     {
         // uninstall stop signal handler
         pcntl_signal(SIGINT, SIG_IGN, false);
@@ -301,11 +312,11 @@ abstract class Manager
         // uninstall  status signal handler
         pcntl_signal(SIGUSR2, SIG_IGN, false);
         // reinstall stop signal handler
-        $event->add(SIGINT, IEvent::EV_SIGNAL, [self, 'signalHandler']);
+        self::$globalEvent->add(SIGINT, IEvent::EV_SIGNAL, [self, 'signalHandler']);
         // reinstall  reload signal handler
-        $event->add(SIGUSR1, IEvent::EV_SIGNAL, [self, 'signalHandler']);
+        self::$globalEvent->add(SIGUSR1, IEvent::EV_SIGNAL, [self, 'signalHandler']);
         // reinstall  status signal handler
-        $event->add(SIGUSR2, IEvent::EV_SIGNAL, [self, 'signalHandler']);
+        self::$globalEvent->add(SIGUSR2, IEvent::EV_SIGNAL, [self, 'signalHandler']);
     }
 
     /**
@@ -325,7 +336,7 @@ abstract class Manager
         // Timer init.
         Timer::init();
         // select a event
-        self::$eventName = Util::choiceEventLoop(self::$eventLoop);
+        self::$eventName = self::choiceEventLoop(self::$eventName);
         // set status
         self::$status = Macro::STATUS_STARTING;
         static::parseCommand();
@@ -339,7 +350,7 @@ abstract class Manager
     {
         $dir = Ac::config()->get('server.pidSaveDir');
         if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
+            mkdir($dir, 0755, true);
         }
         $backtrace = debug_backtrace();
         $fileName = str_replace('/', '_', $backtrace[count($backtrace) - 1]['file']);

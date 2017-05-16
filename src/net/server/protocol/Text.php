@@ -4,6 +4,7 @@
  */
 namespace phspring\net\server\protocol;
 
+use phspring\net\server\connection\Connection;
 use phspring\net\server\connection\Tcp;
 
 /**
@@ -18,7 +19,7 @@ class Text implements IProtocol
      * @param Tcp $connection
      * @return int
      */
-    public static function input($buffer, Tcp $connection)
+    public static function input($buffer, Connection $connection)
     {
         // Judge whether the package length exceeds the limit.
         if (strlen($buffer) >= Tcp::$maxPackageSize) {
@@ -26,7 +27,7 @@ class Text implements IProtocol
             return 0;
         }
         //  Find the position of  "\n".
-        $pos = strpos($buffer, "\n");
+        $pos = strpos($buffer, PHP_EOL);
         // No "\n", packet length is unknown, continue to wait for the data so return 0.
         if ($pos === false) {
             return 0;
@@ -40,10 +41,10 @@ class Text implements IProtocol
      * @param string $buffer
      * @return string
      */
-    public static function encode($buffer)
+    public static function encode($buffer, Connection $connection)
     {
         // Add "\n"
-        return $buffer . "\n";
+        return $buffer . PHP_EOL;
     }
 
     /**
@@ -51,7 +52,7 @@ class Text implements IProtocol
      * @param string $buffer
      * @return string
      */
-    public static function decode($buffer)
+    public static function decode($buffer, Connection $connection)
     {
         // Remove "\n"
         return trim($buffer);

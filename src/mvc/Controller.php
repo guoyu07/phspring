@@ -24,10 +24,10 @@ class Controller extends Base
     }
 
     /**
-     * destory
+     * scavenger
      */
-    public function destory()
+    public function scavenger()
     {
-        //parent::destory();
+        //parent::scavenger();
     }
 }

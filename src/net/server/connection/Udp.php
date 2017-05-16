@@ -28,17 +28,17 @@ class Udp
      * Remote address.
      * @var string
      */
-    protected $remoteAddress = '';
+    protected $remoteAddr = '';
 
     /**
      * Construct.
      * @param resource $socket
      * @param string $remote_address
      */
-    public function __construct($socket, $remoteAddress)
+    public function __construct($socket, $remoteAddr)
     {
         $this->socket = $socket;
-        $this->remoteAddress = $remoteAddress;
+        $this->remoteAddr = $remoteAddr;
     }
 
     /**
@@ -57,7 +57,7 @@ class Udp
             }
         }
 
-        return strlen($sendBuffer) === stream_socket_sendto($this->socket, $sendBuffer, 0, $this->remoteAddress);
+        return strlen($sendBuffer) === stream_socket_sendto($this->socket, $sendBuffer, 0, $this->remoteAddr);
     }
 
     /**
@@ -66,9 +66,9 @@ class Udp
      */
     public function getRemoteIp()
     {
-        $pos = strrpos($this->remoteAddress, ':');
+        $pos = strrpos($this->remoteAddr, ':');
         if ($pos) {
-            return trim(substr($this->remoteAddress, 0, $pos), '[]');
+            return trim(substr($this->remoteAddr, 0, $pos), '[]');
         }
         return '';
     }
@@ -79,8 +79,8 @@ class Udp
      */
     public function getRemotePort()
     {
-        if ($this->remoteAddress) {
-            return (int)substr(strrchr($this->remoteAddress, ':'), 1);
+        if ($this->remoteAddr) {
+            return (int)substr(strrchr($this->remoteAddr, ':'), 1);
         }
 
         return 0;

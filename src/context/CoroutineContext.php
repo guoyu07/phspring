@@ -119,9 +119,9 @@ class CoroutineContext extends Context
     }
 
     /**
-     * destory
+     * scavenger
      */
-    public function destroy()
+    public function scavenger()
     {
         unset($this->controller);
         unset($this->yieldStack);

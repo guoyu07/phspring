@@ -4,6 +4,7 @@
  */
 namespace phspring\net\server;
 
+use phspring\net\server\base\Manager;
 use phspring\net\server\connection\Connection;
 use phspring\net\server\connection\Tcp;
 use phspring\net\server\connection\Udp;
@@ -33,7 +34,6 @@ class Worker extends \phspring\net\server\base\Worker
             return;
         }
 
-        // Get the application layer communication protocol and listening address.
         list($scheme, $address) = explode(':', $this->socketName, 2);
         // Check application layer protocol class.
         if (!isset(Manager::$defaultTransports[$scheme])) {
@@ -56,18 +56,18 @@ class Worker extends \phspring\net\server\base\Worker
             $this->transport = $scheme;
         }
 
-        $localSocket = Manager::$defaultTransports[$this->transport] . ":" . $address;
+        $localSocket = Manager::$defaultTransports[$this->transport] . ':' . $address;
 
         // Flag.
         $flags = $this->transport === 'udp' ? STREAM_SERVER_BIND : STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
         $errno = 0;
-        $errmsg = '';
+        $errMsg = '';
         if ($this->reusePort) {
             stream_context_set_option($this->socketContext, 'socket', 'so_reuseport', 1);
         }
-        $this->mainSocket = stream_socket_server($localSocket, $errno, $errmsg, $flags, $this->socketContext);
+        $this->mainSocket = stream_socket_server($localSocket, $errno, $errMsg, $flags, $this->socketContext);
         if (!$this->mainSocket) {
-            throw new Exception($errmsg);
+            throw new \Exception($errMsg);
         }
         if ($this->transport === 'ssl') {
             stream_socket_enable_crypto($this->mainSocket, false);
@@ -78,12 +78,12 @@ class Worker extends \phspring\net\server\base\Worker
             @socket_set_option($socket, SOL_TCP, TCP_NODELAY, 1);
         }
         stream_set_blocking($this->mainSocket, 0);
-        if (Manager::$event) {
+        if (Manager::getGlobalEvent()) {
             if ($this->transport === 'udp') {
-                Manager::$event->add($this->mainSocket, IEvent::EV_READ,
+                Manager::getGlobalEvent()->add($this->mainSocket, IEvent::EV_READ,
                     [$this, 'acceptUdpConnection']);
             } else {
-                Manager::$event->add($this->mainSocket, IEvent::EV_READ, [$this, 'acceptTcpConnection']);
+                Manager::getGlobalEvent()->add($this->mainSocket, IEvent::EV_READ, [$this, 'acceptTcpConnection']);
             }
         }
     }
@@ -96,22 +96,19 @@ class Worker extends \phspring\net\server\base\Worker
     public function run()
     {
         Manager::$status = Macro::STATUS_RUNNING;
-        register_shutdown_function(["\\phspring\\net\\server\\Manager", 'checkErrors']);
-        if (!Manager::$event) {
-            $class = Manager::getEvent(); // ???
-            Manager::$event = new $class;
-            if ($this->socketName) {
-                if ($this->transport !== 'udp') {
-                    Manager::$event->add($this->mainSocket, IEvent::EV_READ,
-                        [$this, 'acceptTcpConnection']);
-                } else {
-                    Manager::$event->add($this->mainSocket, IEvent::EV_READ,
-                        [$this, 'acceptUdpConnection']);
-                }
+        register_shutdown_function([$this, 'shutdownHandler']);
+        if (!Manager::getGlobalEvent()) {
+            Manager::setGlobalEvent(new (Manager::getEventName()));
+            if ($this->transport === 'udp') {
+                Manager::getGlobalEvent()->add($this->mainSocket, IEvent::EV_READ,
+                    [$this, 'acceptUdpConnection']);
+            } else {
+                Manager::getGlobalEvent()->add($this->mainSocket, IEvent::EV_READ,
+                    [$this, 'acceptTcpConnection']);
             }
         }
-        Util::reinstallSignal();
-        Timer::init(Manager::$event);
+        Manager::reinstallSignal();
+        Timer::init(Manager::getGlobalEvent());
         // Try to emit onWorkerStart callback.
         if ($this->onWorkerStart) {
             try {
@@ -120,7 +117,7 @@ class Worker extends \phspring\net\server\base\Worker
                 Util::log($e) && exit(250);
             }
         }
-        Manager::$event->loop();
+        Manager::getGlobalEvent()->loop();
     }
 
     /**
@@ -139,7 +136,7 @@ class Worker extends \phspring\net\server\base\Worker
             }
         }
         // Remove listener for server socket.
-        Manager::$event->del($this->mainSocket, IEvent::EV_READ);
+        Manager::getGlobalEvent()->del($this->mainSocket, IEvent::EV_READ);
         @fclose($this->mainSocket);
     }
 
@@ -152,14 +149,14 @@ class Worker extends \phspring\net\server\base\Worker
     public function acceptTcpConnection($socket)
     {
         // Accept a connection on server socket.
-        $newSocket = @stream_socket_accept($socket, 0, $remoteAddress);
+        $newSocket = @stream_socket_accept($socket, 0, $remoteAddr);
         // Thundering herd.
         if (!$newSocket) {
             return;
         }
 
         // TcpConnection.
-        $connection = new Tcp($newSocket, $remoteAddress);
+        $connection = new Tcp($newSocket, $remoteAddr);
         $this->connections[$connection->id] = $connection;
         $connection->worker = $this;
         $connection->protocol = $this->protocol;
@@ -188,12 +185,12 @@ class Worker extends \phspring\net\server\base\Worker
      */
     public function acceptUdpConnection($socket)
     {
-        $recvBuffer = stream_socket_recvfrom($socket, Macro::MAX_UDP_PACKAGE_SIZE, 0, $remoteAddress);
-        if (false === $recvBuffer || empty($remoteAddress)) {
+        $recvBuffer = stream_socket_recvfrom($socket, Macro::MAX_UDP_PACKAGE_SIZE, 0, $remoteAddr);
+        if (false === $recvBuffer || empty($remoteAddr)) {
             return false;
         }
         // Udp connection.
-        $connection = new Udp($socket, $remoteAddress);
+        $connection = new Udp($socket, $remoteAddr);
         $connection->protocol = $this->protocol;
         if ($this->onMessage) {
             if ($this->protocol) {
@@ -213,5 +210,13 @@ class Worker extends \phspring\net\server\base\Worker
         }
 
         return true;
+    }
+
+    /**
+     * shutdown func
+     */
+    public function shutdownHandler()
+    {
+        //...
     }
 }

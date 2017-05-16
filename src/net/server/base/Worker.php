@@ -15,58 +15,6 @@ use phspring\net\server\Util;
 abstract class Worker
 {
     /**
-     * class hash id.
-     * @var string
-     */
-    public $workerId = '';
-    /**
-     * @var int
-     */
-    public $id = 0;
-    /**
-     * @var string
-     */
-    public $name = 'nobody';
-    /**
-     * @var int
-     */
-    public $count = 1;
-    /**
-     * Unix user of processes, needs appropriate privileges (usually root).
-     * @var string
-     */
-    public $user = '';
-    /**
-     * Unix group of processes, needs appropriate privileges (usually root).
-     * @var string
-     */
-    public $group = '';
-    /**
-     * reloadable.
-     * @var bool
-     */
-    public $reloadable = true;
-    /**
-     * reuse port.
-     * @var bool
-     */
-    public $reusePort = false;
-    /**
-     * Transport layer protocol.
-     * @var string
-     */
-    public $transport = 'tcp';
-    /**
-     * Store all connections of clients.
-     * @var array
-     */
-    public $connections = [];
-    /**
-     * Application layer protocol.
-     * @var \phspring\net\server\protocol\IProtocol
-     */
-    public $protocol = null;
-    /**
      * Emitted when worker processes start.
      * @var callback
      */
@@ -112,6 +60,58 @@ abstract class Worker
      */
     public $onWorkerReload = null;
 
+    /**
+     * class hash id.
+     * @var string
+     */
+    protected $workerId = '';
+    /**
+     * @var int
+     */
+    protected $id = 0;
+    /**
+     * @var string
+     */
+    protected $name = 'nobody';
+    /**
+     * @var int
+     */
+    protected $count = 1;
+    /**
+     * Unix user of processes, needs appropriate privileges (usually root).
+     * @var string
+     */
+    protected $user = '';
+    /**
+     * Unix group of processes, needs appropriate privileges (usually root).
+     * @var string
+     */
+    protected $group = '';
+    /**
+     * reloadable.
+     * @var bool
+     */
+    protected $reloadable = true;
+    /**
+     * reuse port.
+     * @var bool
+     */
+    protected $reusePort = false;
+    /**
+     * Transport layer protocol.
+     * @var string
+     */
+    protected $transport = 'tcp';
+    /**
+     * Store all connections of clients.
+     * @var array
+     */
+    protected $connections = [];
+    /**
+     * Application layer protocol.
+     * @var \phspring\net\server\protocol\IProtocol
+     */
+    protected $protocol = null;
     /**
      * Listening socket.
      * @var resource
@@ -194,6 +194,15 @@ abstract class Worker
     public function setCount($count)
     {
         $this->count = max(1, (int)$count);
+    }
+
+    /**
+     * remove a connection
+     * @param int $id
+     */
+    public function removeConnection($id)
+    {
+        unset($this->connections[$id]);
     }
 
     /**
