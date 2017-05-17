@@ -187,11 +187,21 @@ abstract class Worker
     }
 
     /**
+     * set count
      * @param int $count
      */
     public function setCount($count)
     {
         $this->count = max(1, (int)$count);
+    }
+
+    /**
+     * get count
+     * @return int
+     */
+    public function getCount()
+    {
+        return $this->count;
     }
 
     /**

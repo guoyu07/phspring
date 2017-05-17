@@ -422,7 +422,7 @@ abstract class Manager
         /* @var $worker Worker */
         foreach (self::$workers as $workerId => $worker) {
             $ids = [];
-            for ($i = 0; $i < $worker->count; $i++) {
+            for ($i = 0; $i < $worker->getCount(); $i++) {
                 $ids[$i] = self::$workersPids[$workerId][$i] ?? 0;
             }
             self::$workersPids[$workerId] = $ids;
@@ -442,8 +442,8 @@ abstract class Manager
                 }
             }
 
-            //while (count(self::$workerPidMap[$worker->workerId]) < $worker->count) {
-            while (count(self::getWorkerPids($worker)) < $worker->count) {
+            //while (count(self::$workerPidMap[$worker->workerId]) < $worker->getCount()) {
+            while (count(self::getWorkerPids($worker)) < $worker->getCount()) {
                 static::forkWorker($worker);
             }
         }
