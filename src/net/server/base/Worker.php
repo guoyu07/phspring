@@ -22,6 +22,20 @@ abstract class Worker
      */
     public $id = 0;
     /**
+     * @var string
+     */
+    public $name = 'nobody';
+    /**
+     * Unix user of processes, needs appropriate privileges (usually root).
+     * @var string
+     */
+    public $user = '';
+    /**
+     * Unix group of processes, needs appropriate privileges (usually root).
+     * @var string
+     */
+    public $group = '';
+    /**
      * reloadable.
      * @var bool
      */
@@ -78,23 +92,9 @@ abstract class Worker
     public $onWorkerReload = null;
 
     /**
-     * @var string
-     */
-    protected $name = 'nobody';
-    /**
      * @var int
      */
     protected $count = 1;
-    /**
-     * Unix user of processes, needs appropriate privileges (usually root).
-     * @var string
-     */
-    protected $user = '';
-    /**
-     * Unix group of processes, needs appropriate privileges (usually root).
-     * @var string
-     */
-    protected $group = '';
     /**
      * reuse port.
      * @var bool
@@ -202,40 +202,6 @@ abstract class Worker
     public function getCount()
     {
         return $this->count;
-    }
-
-    /**
-     * @param $name
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-    }
-
-    /**
-     * get name
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * set user
-     * @param $user
-     */
-    public function setUser($user)
-    {
-        $this->user = $user;
-    }
-
-    /**
-     * get user
-     * @return string
-     */
-    public function getUser()
-    {
-        return $this->user;
     }
 
     /**

@@ -176,7 +176,7 @@ class Manager extends \phspring\net\server\base\Manager
                 $worker->workerId => $worker
             ];
             Timer::delAll();
-            ProcessHelper::setProcessTitle('Server: worker process  ' . $worker->getName() . ' ' . $worker->getSocketName());
+            ProcessHelper::setProcessTitle('Server: worker process  ' . $worker->name . ' ' . $worker->getSocketName());
             $worker->setUserAndGroup();
             $worker->id = $id;
             $worker->run();
@@ -212,7 +212,7 @@ class Manager extends \phspring\net\server\base\Manager
             foreach (self::$workersPids as $workerId => $pids) {
                 /* @var $worker Worker */
                 $worker = self::$workers[$workerId];
-                if ($worker->reloadable) {
+                if ($worker->getReloadable()) {
                     foreach ($pids as $pid) {
                         $pidsReloadable[$pid] = $pid;
                     }
@@ -245,7 +245,7 @@ class Manager extends \phspring\net\server\base\Manager
                 }
             }
 
-            if ($worker->reloadable) {
+            if ($worker->getReloadable()) {
                 self::stopAll();
             }
         }
@@ -270,7 +270,7 @@ class Manager extends \phspring\net\server\base\Manager
                         /* @var $worker Worker */
                         $worker = self::$workers[$workerId];
                         if ($status !== 0) {
-                            Util::log("worker[" . $worker->getName() . ":$pid] exit with status $status");
+                            Util::log("worker[" . $worker->name . ":$pid] exit with status $status");
                         }
 
                         if (!isset(self::$globalStatistics['worker_exit_info'][$workerId][$status])) {
@@ -369,7 +369,7 @@ class Manager extends \phspring\net\server\base\Manager
 
         /* @var $worker Worker */
         foreach (self::$workers as $worker) {
-            self::safeEcho(str_pad($worker->getUser(), self::$maxUserNameLength + 2) . str_pad($worker->getName(),
+            self::safeEcho(str_pad($worker->user, self::$maxUserNameLength + 2) . str_pad($worker->name,
                     self::$maxWorkerNameLength + 2) . str_pad($worker->getSocketName(),
                     self::$maxSocketNameLength + 2) . str_pad(' ' . $worker->getCount(),
                     9) . " \033[32;40m [OK] \033[0m\n");

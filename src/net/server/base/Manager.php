@@ -406,13 +406,13 @@ abstract class Manager
     {
         /* @var $worker Worker */
         foreach (self::$workers as $worker) {
-            if (empty($worker->getName())) {
-                $worker->setName('nobody');
+            if (empty($worker->name)) {
+                $worker->name = 'nobody';
             }
-            if (empty($worker->getUser())) {
-                $worker->setUser(ProcessHelper::getUserName());
+            if (empty($worker->user)) {
+                $worker->user = ProcessHelper::getUserName();
             } else {
-                if (posix_getuid() !== 0 && $worker->getUser() != ProcessHelper::getUserName()) {
+                if (posix_getuid() !== 0 && $worker->user != ProcessHelper::getUserName()) {
                     echo 'Warning: You must have the root privileges to change the uid or gid.';
                 }
             }
@@ -446,8 +446,8 @@ abstract class Manager
         /* @var $worker Worker */
         foreach (self::$workers as $worker) {
             if (self::$status === Macro::STATUS_STARTING) {
-                if (empty($worker->getName())) {
-                    $worker->setName($worker->getSocketName());
+                if (empty($worker->name)) {
+                    $worker->name = $worker->getSocketName();
                 }
             }
 
