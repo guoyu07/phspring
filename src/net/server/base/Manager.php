@@ -359,8 +359,6 @@ abstract class Manager
         Timer::init();
         // select a event
         self::$eventName = static::choiceEventLoop(self::$eventName);
-        var_dump('-------------------------------');
-        var_dump(self::$eventName);exit;
         // set status
         self::$status = Macro::STATUS_STARTING;
         static::parseCommand();
