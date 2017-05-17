@@ -51,7 +51,7 @@ class Manager extends \phspring\net\server\base\Manager
         echo("phspring[$file] $command1 $mode " . PHP_EOL);
 
         // Get manager process PID.
-        $managerPid = @file_get_contents(Manager::$managerPidPath);
+        $managerPid = @file_get_contents(self::$pidPath);
         $managerIsAlive = $managerPid && @posix_kill($managerPid, 0);
         // Manager is still alive?
         if ($managerIsAlive) {
@@ -109,7 +109,7 @@ class Manager extends \phspring\net\server\base\Manager
                         exit(0);
                     }
                     if ($command2 === '-d') {
-                        Manager::$daemonize = true;
+                        self::$daemonize = true;
                     }
                     break;
                 }
