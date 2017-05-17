@@ -142,6 +142,7 @@ class Manager extends \phspring\net\server\base\Manager
         if ($loop) {
             self::$eventName = self::$availableEventLoops[$loop];
         }
+        var_dump(self::$eventName);exit;
 
         return self::$eventName;
     }
