@@ -327,6 +327,8 @@ abstract class Manager
     {
         // Pid file.
         self::$pidPath = self::getPidSavePath();
+        // log file
+        Util::setLogFile(Ac::config()->get('server.logFile'));
         // Util title.
         ProcessHelper::setProcessTitle(Ac::config()->get('server.processTitle'));
         // Stats.
