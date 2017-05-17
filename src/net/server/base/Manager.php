@@ -61,6 +61,14 @@ abstract class Manager
      */
     protected static $eventName = '';
     /**
+     * Available event loops.
+     * @var array
+     */
+    protected static $availableEventLoops = [
+        'libevent' => Libevent::class,
+        'event' => Event::class
+    ];
+    /**
      * @var array <Worker, Worker, ...>
      */
     protected static $workers = [];
@@ -273,6 +281,7 @@ abstract class Manager
                 Timer::add(Macro::KILL_WORKER_TIMER_TIME, 'posix_kill', [$pid, SIGKILL], false);
             }
         } else { // For child processes.
+            /* @var $worker Worker */
             foreach (self::$workers as $worker) {
                 $worker->stop();
             }
@@ -289,11 +298,11 @@ abstract class Manager
     public static function installSignal()
     {
         // stop
-        pcntl_signal(SIGINT, [self, 'signalHandler'], false);
+        pcntl_signal(SIGINT, [self::class, 'signalHandler'], false);
         // reload
-        pcntl_signal(SIGUSR1, [self, 'signalHandler'], false);
+        pcntl_signal(SIGUSR1, [self::class, 'signalHandler'], false);
         // status
-        pcntl_signal(SIGUSR2, [self, 'signalHandler'], false);
+        pcntl_signal(SIGUSR2, [self::class, 'signalHandler'], false);
         // ignore
         pcntl_signal(SIGPIPE, SIG_IGN, false);
     }
@@ -312,11 +321,11 @@ abstract class Manager
         // uninstall  status signal handler
         pcntl_signal(SIGUSR2, SIG_IGN, false);
         // reinstall stop signal handler
-        self::$globalEvent->add(SIGINT, IEvent::EV_SIGNAL, [self, 'signalHandler']);
+        self::$globalEvent->add(SIGINT, IEvent::EV_SIGNAL, [self::class, 'signalHandler']);
         // reinstall  reload signal handler
-        self::$globalEvent->add(SIGUSR1, IEvent::EV_SIGNAL, [self, 'signalHandler']);
+        self::$globalEvent->add(SIGUSR1, IEvent::EV_SIGNAL, [self::class, 'signalHandler']);
         // reinstall  status signal handler
-        self::$globalEvent->add(SIGUSR2, IEvent::EV_SIGNAL, [self, 'signalHandler']);
+        self::$globalEvent->add(SIGUSR2, IEvent::EV_SIGNAL, [self::class, 'signalHandler']);
     }
 
     /**
@@ -338,7 +347,7 @@ abstract class Manager
         // Timer init.
         Timer::init();
         // select a event
-        self::$eventName = self::choiceEventLoop(self::$eventName);
+        self::$eventName = static::choiceEventLoop(self::$eventName);
         // set status
         self::$status = Macro::STATUS_STARTING;
         static::parseCommand();
@@ -397,17 +406,17 @@ abstract class Manager
     {
         /* @var $worker Worker */
         foreach (self::$workers as $worker) {
-            if (empty($worker->name)) {
-                $worker->name = 'nobody';
+            if (empty($worker->getName())) {
+                $worker->setName('nobody');
             }
-            if (empty($worker->user)) {
-                $worker->user = ProcessHelper::getUserName();
+            if (empty($worker->getUser())) {
+                $worker->setUser(ProcessHelper::getUserName());
             } else {
-                if (posix_getuid() !== 0 && $worker->user != ProcessHelper::getUserName()) {
+                if (posix_getuid() !== 0 && $worker->getUser() != ProcessHelper::getUserName()) {
                     echo 'Warning: You must have the root privileges to change the uid or gid.';
                 }
             }
-            if (!$worker->reusePort) {
+            if (!$worker->getReusePort()) {
                 $worker->listen();
             }
         }
@@ -437,8 +446,8 @@ abstract class Manager
         /* @var $worker Worker */
         foreach (self::$workers as $worker) {
             if (self::$status === Macro::STATUS_STARTING) {
-                if (empty($worker->name)) {
-                    $worker->name = $worker->getSocketName();
+                if (empty($worker->getName())) {
+                    $worker->setName($worker->getSocketName());
                 }
             }
 
@@ -453,6 +462,11 @@ abstract class Manager
      * parse command
      */
     abstract protected static function parseCommand();
+
+    /**
+     * @return mixed
+     */
+    abstract protected static function choiceEventLoop();
 
     /**
      * fork one worker

@@ -13,6 +13,25 @@ use phspring\net\server\Util;
 abstract class Worker
 {
     /**
+     * class hash id.
+     * @var string
+     */
+    public $workerId = '';
+    /**
+     * @var int
+     */
+    public $id = 0;
+    /**
+     * reloadable.
+     * @var bool
+     */
+    public $reloadable = true;
+    /**
+     * Transport layer protocol.
+     * @var string
+     */
+    public $transport = 'tcp';
+    /**
      * Emitted when worker processes start.
      * @var callback
      */
@@ -59,15 +78,6 @@ abstract class Worker
     public $onWorkerReload = null;
 
     /**
-     * class hash id.
-     * @var string
-     */
-    protected $workerId = '';
-    /**
-     * @var int
-     */
-    protected $id = 0;
-    /**
      * @var string
      */
     protected $name = 'nobody';
@@ -86,20 +96,10 @@ abstract class Worker
      */
     protected $group = '';
     /**
-     * reloadable.
-     * @var bool
-     */
-    protected $reloadable = true;
-    /**
      * reuse port.
      * @var bool
      */
     protected $reusePort = false;
-    /**
-     * Transport layer protocol.
-     * @var string
-     */
-    protected $transport = 'tcp';
     /**
      * Store all connections of clients.
      * @var array
@@ -202,6 +202,49 @@ abstract class Worker
     public function getCount()
     {
         return $this->count;
+    }
+
+    /**
+     * @param $name
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
+
+    /**
+     * get name
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * set user
+     * @param $user
+     */
+    public function setUser($user)
+    {
+        $this->user = $user;
+    }
+
+    /**
+     * get user
+     * @return string
+     */
+    public function getUser()
+    {
+        return $this->user;
+    }
+
+    /**
+     * get reuser port
+     * @return bool
+     */
+    public function getReusePort()
+    {
+        return $this->reusePort;
     }
 
     /**

@@ -5,6 +5,7 @@
 namespace phspring\net\server;
 
 use phspring\net\server\base\Macro;
+use phspring\net\server\base\Worker;
 use phspring\net\server\event\Event;
 use phspring\toolbox\helper\ProcessHelper;
 
@@ -123,6 +124,29 @@ class Manager extends \phspring\net\server\base\Manager
     }
 
     /**
+     * @return string
+     */
+    protected static function choiceEventLoop()
+    {
+        if (self::$eventName) {
+            return self::$eventName;
+        }
+
+        $loop = '';
+        foreach (self::$availableEventLoops as $name => $class) {
+            if (extension_loaded($name)) {
+                $loop = $name;
+                break;
+            }
+        }
+        if ($loop) {
+            self::$eventName = self::$availableEventLoops[$loop];
+        }
+
+        return self::$eventName;
+    }
+
+    /**
      * fork one worker
      * @param Worker $worker
      * @throws Exception
@@ -141,7 +165,7 @@ class Manager extends \phspring\net\server\base\Manager
             //self::$workerPidMap[$worker->workerId][$pid] = $pid;
             self::$workersPids[$worker->workerId][$id] = $pid;
         } elseif (0 === $pid) { // child processes.
-            if ($worker->reusePort) {
+            if ($worker->getReusePort()) {
                 $worker->listen();
             }
             if (self::$status === Macro::STATUS_STARTING) {
@@ -152,7 +176,7 @@ class Manager extends \phspring\net\server\base\Manager
                 $worker->workerId => $worker
             ];
             Timer::delAll();
-            ProcessHelper::setProcessTitle('Server: worker process  ' . $worker->name . ' ' . $worker->getSocketName());
+            ProcessHelper::setProcessTitle('Server: worker process  ' . $worker->getName() . ' ' . $worker->getSocketName());
             $worker->setUserAndGroup();
             $worker->id = $id;
             $worker->run();
@@ -243,9 +267,10 @@ class Manager extends \phspring\net\server\base\Manager
                 foreach (self::$workersPids as $workerId => $pids) {
                     // if (isset($pids[$pid])) {
                     if (in_array($pid, $pids)) {
+                        /* @var $worker Worker */
                         $worker = self::$workers[$workerId];
                         if ($status !== 0) {
-                            Util::log("worker[" . $worker->name . ":$pid] exit with status $status");
+                            Util::log("worker[" . $worker->getName() . ":$pid] exit with status $status");
                         }
 
                         if (!isset(self::$globalStatistics['worker_exit_info'][$workerId][$status])) {
@@ -344,9 +369,9 @@ class Manager extends \phspring\net\server\base\Manager
 
         /* @var $worker Worker */
         foreach (self::$workers as $worker) {
-            self::safeEcho(str_pad($worker->user, self::$maxUserNameLength + 2) . str_pad($worker->name,
+            self::safeEcho(str_pad($worker->getUser(), self::$maxUserNameLength + 2) . str_pad($worker->getName(),
                     self::$maxWorkerNameLength + 2) . str_pad($worker->getSocketName(),
-                    self::$maxSocketNameLength + 2) . str_pad(' ' . $worker->count,
+                    self::$maxSocketNameLength + 2) . str_pad(' ' . $worker->getCount(),
                     9) . " \033[32;40m [OK] \033[0m\n");
         }
         self::safeEcho("----------------------------------------------------------------\n");
