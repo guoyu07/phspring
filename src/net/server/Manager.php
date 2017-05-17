@@ -171,7 +171,7 @@ class Manager extends \phspring\net\server\base\Manager
             if (self::$status === Macro::STATUS_STARTING) {
                 self::resetStd();
             }
-            //self::$workerPidMap = [];???
+            //self::$workerPidMap = [];
             self::$workers = [
                 $worker->workerId => $worker
             ];
@@ -180,7 +180,7 @@ class Manager extends \phspring\net\server\base\Manager
             $worker->setUserAndGroup();
             $worker->id = $id;
             $worker->run();
-            $err = new \Exception('event-loop exited');
+            $err = new \Exception('event loop exited');
             Util::log($err) && exit(250);
         } else {
             throw new \Exception("Fork one worker failed.");
@@ -359,27 +359,6 @@ class Manager extends \phspring\net\server\base\Manager
      */
     protected static function displayUI()
     {
-        self::safeEcho("\033[1A\n\033[K-----------------------\033[47;30m PhSpring \033[0m-----------------------------\n\033[0m");
-        self::safeEcho('PhSpring version:' . AC::$version . "          PHP version:" . PHP_VERSION . "\n");
-        self::safeEcho("------------------------\033[47;30m Workers \033[0m-------------------------------\n");
-        self::safeEcho("\033[47;30muser\033[0m" . str_pad('',
-                self::$maxUserNameLength + 2 - strlen('user')) . "\033[47;30mworker\033[0m" . str_pad('',
-                self::$maxWorkerNameLength + 2 - strlen('worker')) . "\033[47;30mlisten\033[0m" . str_pad('',
-                self::$maxSocketNameLength + 2 - strlen('listen')) . "\033[47;30mprocesses\033[0m \033[47;30m" . "status\033[0m\n");
-
-        /* @var $worker Worker */
-        foreach (self::$workers as $worker) {
-            self::safeEcho(str_pad($worker->user, self::$maxUserNameLength + 2) . str_pad($worker->name,
-                    self::$maxWorkerNameLength + 2) . str_pad($worker->getSocketName(),
-                    self::$maxSocketNameLength + 2) . str_pad(' ' . $worker->getCount(),
-                    9) . " \033[32;40m [OK] \033[0m\n");
-        }
-        self::safeEcho("----------------------------------------------------------------\n");
-        if (self::$daemonize) {
-            global $argv;
-            self::safeEcho("Input \"php $argv[0] stop\" to quit. Start success.\n\n");
-        } else {
-            self::safeEcho("Press Ctrl-C to quit. Start success.\n");
-        }
+        echo 'display';
     }
 }
