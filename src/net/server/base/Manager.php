@@ -55,6 +55,10 @@ abstract class Manager
      */
     protected static $pidPath = '';
     /**
+     * @var string
+     */
+    protected static $startFile = '';
+    /**
      * @var IEvent
      */
     protected static $globalEvent = null;
@@ -140,7 +144,7 @@ abstract class Manager
     {
         return self::$daemonize;
     }
-    
+
     /**
      * set manager pid
      * @param $pid
@@ -347,6 +351,7 @@ abstract class Manager
     {
         // Pid file.
         self::$pidPath = self::getPidSavePath();
+        self::setStartFile();
         // log file
         Util::setLogFile(Ac::config()->get('server.logFile'));
         // Util title.
@@ -364,6 +369,13 @@ abstract class Manager
         static::parseCommand();
     }
 
+    protected static function setStartFile()
+    {
+        // Start file.
+        $backtrace = debug_backtrace();
+        self::$startFile = $backtrace[count($backtrace) - 1]['file'];
+    }
+
     /**
      * get manager pid save path
      * @return string
@@ -374,8 +386,7 @@ abstract class Manager
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
-        $backtrace = debug_backtrace();
-        $fileName = str_replace('/', '_', $backtrace[count($backtrace) - 1]['file']);
+        $fileName = str_replace('/', '_', self::$startFile);
 
         return $dir . $fileName . '.pid';
     }
