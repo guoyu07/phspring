@@ -96,7 +96,7 @@ class Worker extends \phspring\net\server\base\Worker
      */
     public function run()
     {
-        Manager::$status = Macro::STATUS_RUNNING;
+        Manager::setStatus(Macro::STATUS_RUNNING);
         register_shutdown_function([$this, 'shutdownHandler']);
         if (!Manager::getGlobalEvent()) {
             $event = Manager::getEventName();

@@ -244,6 +244,15 @@ abstract class Manager
     }
 
     /**
+     * set status
+     * @param $status
+     */
+    public static function setStatus($status)
+    {
+        self::$status = $status;
+    }
+
+    /**
      * @param int $signal
      */
     public static function signalHandler($signal)
