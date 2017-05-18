@@ -13,18 +13,6 @@ use phspring\context\Context;
 interface IRecoverable
 {
     /**
-     * get context
-     * @return Context
-     */
-    public function getContext(): Context;
-
-    /**
-     * set context
-     * @return null
-     */
-    public function setContext(Context $context);
-
-    /**
      * bean pool clear
      * @return
      */

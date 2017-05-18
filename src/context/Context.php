@@ -5,12 +5,13 @@
 namespace phspring\context;
 
 use phspring\core\Bean;
+use phspring\core\IRecoverable;
 
 /**
  * Class Context
  * @package phspring\context
  */
-class Context extends Bean
+class Context extends Bean implements IRecoverable
 {
     /**
      * @var string unique request id
@@ -81,5 +82,18 @@ class Context extends Bean
         $id = ApplicationContext::$globalId = ApplicationContext::$globalId > 0xFFFFFE ? 1 : ApplicationContext::$globalId + 1;
 
         return sprintf('%08x%06x%04x%06x', $time, $machine, $process, $id);
+    }
+
+    /**
+     * bean pool clear
+     * @return
+     */
+    public function scavenger()
+    {
+        $this->uuid = '';
+        $this->logTraceId = '';
+        unset($this->log);
+        unset($this->input);
+        unset($this->output);
     }
 }
