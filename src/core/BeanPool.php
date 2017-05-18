@@ -4,77 +4,43 @@
  */
 namespace phspring\core;
 
-use phspring\context\Ac;
+use phspring\context\Context;
 
 /**
  * Class BeanPool
  * @package phspring\core
  */
-class BeanPool extends Bean
+class BeanPool extends Bean implements IRecoverable
 {
     /**
-     * @var array [class1 => [Stack1], class2 => [Stack2]]
+     * @var Context
      */
-    private $_map = [];
+    public $context;
 
     /**
-     * get one object from pool
-     * @param string $class
-     * @return mixed
+     * get context
+     * @return Context
      */
-    public function get($class)
+    public function getContext(): Context
     {
-        $pool = $this->_map[$class] ?? null;
-        if ($pool === null) {
-            $pool = $this->genPool($class);
-        }
-        if ($pool->count() > 0) {
-            return $pool->shift();
-        } else {
-            $clazz = Ac::getBean($class, null, [], ['useCount' => 0, 'genTime' => time()]);
-            //$clazz = new $class();
-            //$clazz->useCount = 0;
-            //$clazz->genTime = time();
-            return $clazz;
-        }
+        return $this->context;
     }
 
     /**
-     * recover a object to pool
-     * @param string $class
-     * @param Bean $clazz
+     * set context
+     * @return
      */
-    public function recover($class, Bean $clazz)
+    public function setContext(Context $context)
     {
-        $pool = $this->_map[$class] ?? null;
-        if ($pool === null) {
-            $pool = $this->genPool($class);
-        }
-        $pool->push($clazz);
+        $this->context = $context;
     }
 
     /**
-     * @param string $class
+     * bean pool clear
+     * @return
      */
-    public function clear($class)
+    public function scavenger()
     {
-        if (isset($this->_map[$class])) {
-            unset($this->_map[$class]);
-        }
-    }
-
-    /**
-     * @param string $beanId
-     * @return mixed
-     * @throws \Exception
-     */
-    private function genPool($class)
-    {
-        if (array_key_exists($class, $this->_map)) {
-            throw new \Exception('the name is exists in pool map');
-        }
-        $this->_map[$class] = new \SplStack();
-
-        return $this->_map[$class];
+        unset($this->context);
     }
 }

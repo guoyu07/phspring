@@ -4,11 +4,13 @@
  */
 namespace phspring\context;
 
+use phspring\core\Bean;
+
 /**
  * Class Context
  * @package phspring\context
  */
-class Context
+class Context extends Bean
 {
     /**
      * @var string unique request id

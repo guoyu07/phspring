@@ -20,9 +20,9 @@ interface IRecoverable
 
     /**
      * set context
-     * @return
+     * @return null
      */
-    public function setContext();
+    public function setContext(Context $context);
 
     /**
      * bean pool clear

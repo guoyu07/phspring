@@ -4,16 +4,15 @@
  */
 namespace phspring\mvc;
 
-use phspring\core\Bean;
+use phspring\context\Context;
+use phspring\core\BeanPool;
+use phspring\core\Pool;
 
 /**
  * Class Base
  * @package phspring\mvc
  */
-class Base extends Bean
+class Base extends BeanPool
 {
-    /**
-     * @var \phspring\context\Context
-     */
-    public $context;
+
 }
