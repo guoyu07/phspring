@@ -28,6 +28,7 @@ class Controller extends Base
      */
     public function scavenger()
     {
-        //parent::scavenger();
+        $this->isRpc = false;
+        parent::scavenger();
     }
 }

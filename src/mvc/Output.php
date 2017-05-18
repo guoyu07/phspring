@@ -5,12 +5,13 @@
 namespace phspring\mvc;
 
 use phspring\core\Bean;
+use phspring\core\IRecoverable;
 
 /**
  * Class Output
  * @package phspring\mvc
  */
-class Output extends Bean
+class Output extends Bean implements IRecoverable
 {
     /**
      * @param $data
@@ -19,5 +20,14 @@ class Output extends Bean
     public function send($data, $status = 200)
     {
         $data = Ac::$appContext->packer->encode($data);
+    }
+
+    /**
+     * bean pool clear
+     * @return
+     */
+    public function scavenger()
+    {
+
     }
 }

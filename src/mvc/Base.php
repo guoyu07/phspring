@@ -4,9 +4,7 @@
  */
 namespace phspring\mvc;
 
-use phspring\context\Context;
 use phspring\core\BeanPool;
-use phspring\core\Pool;
 
 /**
  * Class Base
