@@ -10,6 +10,7 @@ use phspring\net\server\connection\Connection;
 use phspring\net\server\connection\Tcp;
 use phspring\net\server\connection\Udp;
 use phspring\net\server\event\IEvent;
+use phspring\net\server\timer\Timer;
 
 /**
  * Class Worker

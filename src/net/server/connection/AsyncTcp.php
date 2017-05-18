@@ -8,7 +8,7 @@ use phspring\net\server\event\IEvent;
 use phspring\net\server\Macro;
 use phspring\net\server\Manager;
 use phspring\net\server\Util;
-use phspring\net\server\Timer;
+use phspring\net\server\timer\Timer;
 
 /**
  * Class AsyncTcp

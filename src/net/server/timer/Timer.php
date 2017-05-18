@@ -2,13 +2,13 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\net\server;
+namespace phspring\net\server\timer;
 
 use phspring\net\server\event\IEvent;
 
 /**
  * Class Timer
- * @package phspring\net\server
+ * @package phspring\net\server\timer
  */
 class Timer
 {
