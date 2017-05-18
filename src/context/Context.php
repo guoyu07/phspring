@@ -30,6 +30,11 @@ class Context
      * @var \phspring\toolbox\log\Log
      */
     public $log = null;
+    /**
+     * use to flag bean pool recover, that will auto recover bean to pool.
+     * @var array
+     */
+    public $recoverableBeans = [];
 
     /**
      * initialize

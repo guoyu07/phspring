@@ -67,13 +67,16 @@ class BeanFactory
     public function initBeans(array $beans)
     {
         foreach ($beans as $name => $definition) {
-            $definition = $this->formatDefinition($name, $definition);
+            var_dump($name, $definition);
+            // cannot pool scope.
             $this->setBean($name, $definition);
         }
+        var_dump($this->_singletons);
+        exit;
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @param array $args constructor parameters.
      * @param array $definition class definition.
      * @return array|mixed
@@ -84,25 +87,22 @@ class BeanFactory
         if (isset($this->_singletons[$name])) {
             return $this->_singletons[$name];
         }
-
-        if (isset($this->_beans[$name])) {
-            $config = $this->_beans[$name];
-            if (is_array($config)) {
-                $class = $config['class'];
-                unset($config['class']);
-                $config = array_merge($config, $definition);
-                if ($class === $name) {
-                    $clazz = $this->generate($class, $args, $config);
-                } else {
-                    $clazz = $this->getBean($class, $args, $config);
-                }
-
-                return $clazz;
-            } else {
-                throw new \Exception('Unexpected object definition type: ' . gettype($config));
-            }
+        if (!isset($this->_beans[$name])) {
+            $this->setBean($name, $definition, $args);
         }
-        $this->setBean($name, $definition, $args);
+
+        $config = $this->_beans[$name];
+        if (is_array($config)) {
+            $class = $config['class'];
+            unset($config['class']);
+            $config = array_merge($config, $definition);
+            $clazz = $this->generate($class, $args, $config);
+
+            return $clazz;
+        } else {
+            throw new \Exception('Unexpected object definition type: ' . gettype($config));
+        }
+        //$this->setBean($name, $definition, $args);
 
         return $this->getBean($name, $args, $definition);
     }
@@ -116,6 +116,7 @@ class BeanFactory
     public function setBean($name, $definition = [], $args = [])
     {
         $this->_beans[$name] = $this->formatDefinition($name, $definition);
+        //var_dump($this->_beans);
         if ($definition['scope'] === self::SCOPE_SINGLETON) {
             $this->_singletons[$name] = $this->generate($this->_beans[$name]['class'], $args, $definition);
         }
@@ -221,7 +222,7 @@ class BeanFactory
         $scope = $definition['scope'];
         if ($scope == self::SCOPE_POOL) {
             $clazz = $this->beanPool->get($class);
-        } elseif ($scope === self::SCOPE_PROTOTYPE) {
+        } elseif ($scope == self::SCOPE_SINGLETON || $scope === self::SCOPE_PROTOTYPE) {
             if (!$reflection->isInstantiable()) {
                 throw new \Exception($reflection->name);
             }
@@ -233,7 +234,9 @@ class BeanFactory
         }
 
         if (!empty($definition)) {
+            unset($definition['class']);
             foreach ($definition as $prop => $val) {
+                //var_dump('prop=' . $prop);
                 $clazz->{$prop} = $val;
             }
         }
@@ -256,7 +259,7 @@ class BeanFactory
         $constructor = $reflection->getConstructor();
         if ($constructor !== null) {
             foreach ($constructor->getParameters() as $param) {
-                if ($param->isDefaultValueAvailable()) {
+                if ($param->isDefaultValueAvailable()) { // has default value
                     $refs[] = $param->getDefaultValue();
                 } else {
                     $constructClass = $param->getClass();
@@ -264,7 +267,7 @@ class BeanFactory
                 }
             }
         }
-
+        // caching reflect data.
         $this->_reflections[$class] = $reflection;
         $this->_refs[$class] = $refs;
 
@@ -274,7 +277,7 @@ class BeanFactory
     /**
      * @param array $refs
      * @param null $reflection
-     * @return mixed
+     * @return array [0 => Ojbect1, 1 => Ojbect2]
      * @throws \Exception
      */
     private function resolveRefs(array $refs, $reflection = null)

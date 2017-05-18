@@ -4,6 +4,8 @@
  */
 namespace phspring\core;
 
+use phspring\context\Ac;
+
 /**
  * Class BeanPool
  * @package phspring\core
@@ -29,19 +31,20 @@ class BeanPool extends Bean
         if ($pool->count() > 0) {
             return $pool->shift();
         } else {
-            $clazz = new $class();
-            $clazz->useCount = 0;
-            $clazz->genTime = time();
+            $clazz = Ac::getBean($class, [], ['useCount' => 0, 'genTime' => time()]);
+            //$clazz = new $class();
+            //$clazz->useCount = 0;
+            //$clazz->genTime = time();
             return $clazz;
         }
     }
 
     /**
-     * revert a object to pool
+     * recover a object to pool
      * @param string $class
      * @param Bean $clazz
      */
-    public function revert($class, Bean $clazz)
+    public function recover($class, Bean $clazz)
     {
         $pool = $this->_map[$class] ?? null;
         if ($pool === null) {

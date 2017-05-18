@@ -132,8 +132,6 @@ abstract class Worker
     public function __construct($socketName, array $options = [])
     {
         $this->workerId = spl_object_hash($this);
-        Manager::setWorker($this->workerId, $this);
-        Manager::setWorkPids($this->workerId, []);
 
         // Context for socket.
         $this->socketName = $socketName;
