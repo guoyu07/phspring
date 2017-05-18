@@ -4,6 +4,7 @@
  */
 namespace phspring\core;
 
+use phspring\context\Context;
 use phspring\exception\InvalidConfigException;
 
 /**
@@ -67,22 +68,20 @@ class BeanFactory
     public function initBeans(array $beans)
     {
         foreach ($beans as $name => $definition) {
-            var_dump($name, $definition);
             // cannot pool scope.
             $this->setBean($name, $definition);
         }
-        var_dump($this->_singletons);
-        exit;
     }
 
     /**
      * @param string $name
+     * @param Context $context
      * @param array $args constructor parameters.
      * @param array $definition class definition.
-     * @return array|mixed
+     * @return object
      * @throws \Exception
      */
-    public function getBean($name, $args = [], $definition = [])
+    public function getBean($name, Context $context = null, $args = [], $definition = [])
     {
         if (isset($this->_singletons[$name])) {
             return $this->_singletons[$name];
@@ -96,15 +95,12 @@ class BeanFactory
             $class = $config['class'];
             unset($config['class']);
             $config = array_merge($config, $definition);
-            $clazz = $this->generate($class, $args, $config);
+            $clazz = $this->generate($class, $context, $args, $config);
 
             return $clazz;
         } else {
             throw new \Exception('Unexpected object definition type: ' . gettype($config));
         }
-        //$this->setBean($name, $definition, $args);
-
-        return $this->getBean($name, $args, $definition);
     }
 
     /**
@@ -113,27 +109,15 @@ class BeanFactory
      * @param array $args
      * @return $this
      */
-    public function setBean($name, $definition = [], $args = [])
+    public function setBean($name, Context $context = null, $definition = [], $args = [])
     {
         $this->_beans[$name] = $this->formatDefinition($name, $definition);
         //var_dump($this->_beans);
         if ($definition['scope'] === self::SCOPE_SINGLETON) {
-            $this->_singletons[$name] = $this->generate($this->_beans[$name]['class'], $args, $definition);
+            $this->_singletons[$name] = $this->generate($this->_beans[$name]['class'], $context, $args, $definition);
         }
 
         return $this;
-    }
-
-    /**
-     * create a bean.
-     */
-    public function createBean($class, array $args = [])
-    {
-        if (is_string($class)) {
-            return $this->getBean($class, $args);
-        } elseif (is_array($class) && isset($class['class'])) {
-            return $this->getBean($class, $args);
-        }
     }
 
     /**
@@ -209,15 +193,16 @@ class BeanFactory
 
     /**
      * @param string $class Class name
+     * @param Context $context
      * @param array $args Class construct parameters
      * @param array $definition Class define parameters
      * @return  Object
      */
-    private function generate($class, $args, $definition)
+    private function generate($class, Context $context = null, $args, $definition)
     {
         /* @var $reflection ReflectionClass */
         list ($reflection, $refs) = $this->getRefs($class);
-        $refs = $this->resolveRefs($refs, $reflection);
+        $refs = $this->resolveRefs($refs, $reflection, $context);
 
         $scope = $definition['scope'];
         if ($scope == self::SCOPE_POOL) {
@@ -280,13 +265,13 @@ class BeanFactory
      * @return array [0 => Ojbect1, 1 => Ojbect2]
      * @throws \Exception
      */
-    private function resolveRefs(array $refs, $reflection = null)
+    private function resolveRefs(array $refs, $reflection = null, Context $context = null)
     {
         foreach ($refs as $idx => $ref) {
             if ($ref instanceof Instance) {
                 if ($ref->name !== null) {
                     // Recursively get bean.
-                    $refs[$idx] = $this->getBean($ref->name);
+                    $refs[$idx] = $this->getBean($ref->name, $context);
                 } elseif ($reflection !== null) {
                     $name = $reflection->getConstructor()->getParameters()[$idx]->getName();
                     $class = $reflection->getName();

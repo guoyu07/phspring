@@ -31,7 +31,7 @@ class BeanPool extends Bean
         if ($pool->count() > 0) {
             return $pool->shift();
         } else {
-            $clazz = Ac::getBean($class, [], ['useCount' => 0, 'genTime' => time()]);
+            $clazz = Ac::getBean($class, null, [], ['useCount' => 0, 'genTime' => time()]);
             //$clazz = new $class();
             //$clazz->useCount = 0;
             //$clazz->genTime = time();
