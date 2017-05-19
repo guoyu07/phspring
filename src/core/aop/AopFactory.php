@@ -6,7 +6,7 @@ namespace phspring\core\aop;
 
 use phspring\context\Ac;
 use phspring\context\Context;
-use phspring\core\IRecoverable;
+use phspring\core\BeanPool;
 use phspring\core\Pool;
 
 /**
@@ -58,7 +58,7 @@ class AopFactory
         });
 
         $aopPool->register('onAfter', function ($method, $args, $result) use ($context) {
-            if ($method === 'get' && is_object($result) && $result instanceof IRecoverable) {
+            if ($method === 'get' && is_object($result) && $result instanceof BeanPool) {
                 /* @var $result \phspring\core\BeanPool */
                 $result->incGcCount();
                 $context->recoverableBeans[] = $result;
