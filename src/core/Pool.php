@@ -42,10 +42,11 @@ class Pool extends Bean
     /**
      * recover a object to pool
      * @param string $class
-     * @param Bean $clazz
+     * @param BeanPool $clazz
      */
-    public function recover($class, Bean $clazz)
+    public function recover(BeanPool $clazz)
     {
+        $class = get_class($clazz);
         $pool = $this->_map[$class] ?? null;
         if ($pool === null) {
             $pool = $this->genPool($class);

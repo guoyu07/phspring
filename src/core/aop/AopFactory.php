@@ -46,7 +46,8 @@ class AopFactory
                         ($gcConf['count'] != -1 && $gc['count'] > $gcConf['count'])
                     ) {
                         $params['result'] = false;
-                        $args[0] = null;
+                        //$args[0] = null;
+                        $args = null;
                     }
                 }
             }
