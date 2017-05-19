@@ -15,14 +15,13 @@ class Timer
     /**
      * Tasks that based on ALARM signal.
      * [
-     *   run_time => [[$func, $args, $persistent, time_interval],[$func, $args, $persistent, time_interval],..]],
-     *   run_time => [[$func, $args, $persistent, time_interval],[$func, $args, $persistent, time_interval],..]],
-     *   ..
+     *   runTime => [[$func, $args, $persistent, timeInterval],[$func, $args, $persistent, timeInterval],..]],
+     *   runTime => [[$func, $args, $persistent, timeInterval],[$func, $args, $persistent, timeInterval],..]],
+     *   ...
      * ]
      * @var array
      */
     private static $_tasks = [];
-
     /**
      * event
      * @var IEvent

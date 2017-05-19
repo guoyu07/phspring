@@ -4,14 +4,20 @@
  */
 namespace phspring\net\server\base;
 
+use phspring\core\Bean;
+use phspring\core\BeanFactory;
 use phspring\net\server\Util;
 
 /**
  * Class Worker
  * @package phspring\net\server\base
  */
-abstract class Worker
+abstract class Worker extends Bean
 {
+    /**
+     * @var string
+     */
+    public $scope = BeanFactory::SCOPE_PROTOTYPE;
     /**
      * class hash id.
      * @var string
