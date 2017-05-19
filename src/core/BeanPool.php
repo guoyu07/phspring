@@ -41,6 +41,6 @@ class BeanPool extends Bean implements IRecoverable
      */
     public function scavenger()
     {
-        unset($this->context);
+        $this->context = null;
     }
 }

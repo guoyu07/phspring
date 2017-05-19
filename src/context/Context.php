@@ -92,8 +92,8 @@ class Context extends Bean implements IRecoverable
     {
         $this->uuid = '';
         $this->logTraceId = '';
-        unset($this->log);
-        unset($this->input);
-        unset($this->output);
+        $this->log = null;
+        $this->input = null;
+        $this->output = null;
     }
 }

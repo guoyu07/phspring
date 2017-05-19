@@ -17,11 +17,11 @@ class CoroutineContext extends Context
     /**
      * @var string
      */
-    protected $controllerId;
+    protected $controllerName;
     /**
      * @var string
      */
-    protected $methodId;
+    protected $methodName;
     /**
      * @var array
      */
@@ -77,12 +77,12 @@ class CoroutineContext extends Context
      * @param string $controllerId
      * @param string $methodId
      */
-    public function setController($controller, $controllerId, $methodId)
+    public function setController($controller, $controllerName, $methodName)
     {
         $this->controller = $controller;
-        $this->controllerId = $controllerId;
-        $this->methodId = $methodId;
-        $this->yieldStack[$this->yieldLayer][] = "| # Target function-> $controllerId::$methodId";
+        $this->controllerName = $controllerName;
+        $this->methodName = $methodName;
+        $this->yieldStack[$this->yieldLayer][] = "| # Target function-> $controllerName::$methodName";
     }
 
     /**
@@ -123,7 +123,7 @@ class CoroutineContext extends Context
      */
     public function scavenger()
     {
-        unset($this->controller);
-        unset($this->yieldStack);
+        $this->controller = null;
+        $this->yieldStack = null;
     }
 }

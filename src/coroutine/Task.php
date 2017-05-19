@@ -198,9 +198,9 @@ class Task
             unset(Ac::$appContext->scheduler->taskMap[$this->coroutineContext->uuid]);
             unset(Ac::$appContext->scheduler->ioCallback[$this->coroutineContext->uuid]);
             $this->coroutineContext->destroy();
-            unset($this->coroutineContext);
-            unset($this->stack);
-            unset($this->routine);
+            $this->coroutineContext = null;
+            $this->stack = null;
+            $this->routine = null;
             $this->destroy = true;
             return true;
         } else {
