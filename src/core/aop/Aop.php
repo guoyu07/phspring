@@ -11,7 +11,7 @@ namespace phspring\core\aop;
 class Aop
 {
     /**
-     * @var
+     * @var object
      */
     private $instance;
     /**
@@ -29,7 +29,7 @@ class Aop
     /**
      * @var array
      */
-    private $data = [];
+    private $params = [];
 
     /**
      * Aop constructor.
@@ -68,47 +68,36 @@ class Aop
      */
     public function __call($method, $args)
     {
-        $this->data['method'] = $method;
-        $this->data['arguments'] = $args;
-        unset($this->data['result']);
+        $this->params['method'] = $method;
+        $this->params['args'] = $args;
+        unset($this->params['result']);
 
         foreach ($this->onBeforeFunc as $func) {
-            $this->data = call_user_func_array($func, $this->data);
+            $this->params = call_user_func_array($func, $this->params);
         }
-        if (isset($this->data['result'])) {
-            return $this->data['result'];
+        if (isset($this->params['result'])) {
+            return $this->params['result'];
         }
-        $this->data['result'] = call_user_func_array([$this->instance, $this->data['method']],
-            $this->data['arguments']);
+        $this->params['result'] = call_user_func_array([$this->instance, $this->params['method']], $this->params['args']);
         foreach ($this->onAfterFunc as $func) {
-            $this->data = call_user_func_array($func, $this->data);
+            $this->params = call_user_func_array($func, $this->params);
         }
 
-        return $this->data['result'];
+        return $this->params['result'];
     }
 
     /**
      * @param callable $callback
      */
-    public function registerOnBefore(callable $callback)
+    public function register($name, callable $callback)
     {
-        $this->onBeforeFunc[] = $callback;
-    }
-
-    /**
-     * @param callable $callback
-     */
-    public function registerOnAfter(callable $callback)
-    {
-        $this->onAfterFunc[] = $callback;
-    }
-
-    /**
-     * @param callable $callback
-     */
-    public function registerOnBoth(callable $callback)
-    {
-        $this->onBeforeFunc[] = $callback;
-        $this->onAfterFunc[] = $callback;
+        if ($name == 'onBefore') {
+            $this->onBeforeFunc[] = $callback;
+        } elseif ($name == 'onAfter') {
+            $this->onAfterFunc[] = $callback;
+        } elseif ($name == 'onBoth') {
+            $this->onBeforeFunc[] = $callback;
+            $this->onAfterFunc[] = $callback;
+        }
     }
 }

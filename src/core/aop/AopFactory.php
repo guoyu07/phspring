@@ -4,8 +4,10 @@
  */
 namespace phspring\core\aop;
 
+use phspring\context\Ac;
 use phspring\context\Context;
-use phspring\core\BeanPool;
+use phspring\core\IRecoverable;
+use phspring\core\Pool;
 
 /**
  * Class AopFactory
@@ -14,45 +16,81 @@ use phspring\core\BeanPool;
 class AopFactory
 {
     /**
+     * @var array
+     */
+    protected static $reflections = [];
+
+    /**
      * get beanPool
-     * @param BeanPool $pool
+     * @param Pool $pool
      * @param Context $context
      * @return Aop
      */
-    public static function getBeanPool(BeanPool $pool, Context $context)
+    public static function getBeanPool(Pool $pool, Context $context)
     {
         $aopPool = new Aop($pool);
-        $aopPool->registerOnBefore(function ($method, $args) use ($context) {
+        $gcConf = self::getBeanPoolGcConf();
+
+        $aopPool->register('onBefore', function ($method, $args) use ($context, $gcConf) {
             if ($method === 'recover') {
                 if (method_exists($args[0], 'scavenger')) {
                     $args[0]->scavenger();
                 }
-                if (($args[0]->genTime + 7200) < time() || $args[0]->useCount > 10000) {
-                    $data['result'] = false;
-                    unset($args[0]);
+                $class = get_class($args[0]);
+                if (!empty(self::$reflections[$class]) && method_exists($args[0], 'resetProperties')) {
+                    $args[0]->resetProperties($args[0], self::$reflections[$class]);
+                }
+                if ($gcConf['enable']) {
+                    $gc = $args[0]->getGc();
+                    if (($gcConf['expire'] != 0 && ($gc['time'] + $gcConf['expire']) < time()) ||
+                        ($gcConf['count'] != -1 && $gc['count'] > $gcConf['count'])
+                    ) {
+                        $params['result'] = false;
+                        $args[0] = null;
+                    }
                 }
             }
-            $data['method'] = $method;
-            $data['arguments'] = $args;
+            $params['method'] = $method;
+            $params['args'] = $args;
 
-            return $data;
+            return $params;
         });
 
-        $aopPool->registerOnAfter(function ($method, $args, $result) use ($context) {
-            //取得对象后放入请求内部bucket
-            if ($method === 'get' && is_object($result)) {
-                //使用次数+1
-                $result->useCount++;
+        $aopPool->register('onAfter', function ($method, $args, $result) use ($context) {
+            if ($method === 'get' && is_object($result) && $result instanceof IRecoverable) {
+                /* @var $result \phspring\core\BeanPool */
+                $result->incGcCount();
                 $context->recoverableBeans[] = $result;
-                $result->context = $context;
+                $result->setContext($context);
+                $class = get_class($result);
+                if (!isset(self::$reflections[$class])) {
+                    $reflection = new \ReflectionClass($class);
+                    self::$reflections[$class] = array_diff_key($reflection->getDefaultProperties(),
+                        $reflection->getStaticProperties());
+                }
             }
-            $data['method'] = $method;
-            $data['arguments'] = $args;
-            $data['result'] = $result;
+            $params['method'] = $method;
+            $params['args'] = $args;
+            $params['result'] = $result;
 
-            return $data;
+            return $params;
         });
+
 
         return $aopPool;
+    }
+
+    /**
+     * Get bean pool gc config
+     * @return array
+     */
+    private static function getBeanPoolGcConf()
+    {
+        $conf = Ac::config()->get('beanPool.gc', []);
+        $conf['enable'] = $conf['enable'] ?? false;
+        $conf['expire'] = $conf['maxExpireTime'] ?? 0;
+        $conf['count'] = $conf['maxUseCount'] ?? -1;
+
+        return $conf;
     }
 }

@@ -18,6 +18,14 @@ class BeanPool extends Bean implements IRecoverable
     public $context;
 
     /**
+     * @var array
+     */
+    private $gc = [
+        'count' => 0, // use count
+        'time' => 0, // object gen time
+    ];
+
+    /**
      * get context
      * @return Context
      */
@@ -36,11 +44,49 @@ class BeanPool extends Bean implements IRecoverable
     }
 
     /**
+     * @return array
+     */
+    final public function getGc()
+    {
+        return $this->gc;
+    }
+
+    /**
+     * @var int $count
+     */
+    final public function incGcCount($count = 1)
+    {
+        $this->gc['count'] += $count;
+    }
+
+    /**
+     * @param int $time
+     */
+    final public function setGcTime($time)
+    {
+        $this->gc['time'] = $time;
+    }
+
+    /**
      * bean pool clear
      * @return
      */
     public function scavenger()
     {
         $this->context = null;
+    }
+
+    /**
+     * @param BeanPool $child
+     * @param array $properties
+     */
+    public function resetProperties(BeanPool $child, array $properties = [])
+    {
+        if (empty($properties)) {
+            return;
+        }
+        foreach ($properties as $prop => $val) {
+            $child->{$prop} = $val;
+        }
     }
 }
