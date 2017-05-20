@@ -26,20 +26,6 @@ class PoolBean extends Bean implements IRecoverable
     ];
 
     /**
-     * PoolBean constructor.
-     */
-    final public function __construct()
-    {
-    }
-
-    /**
-     * PoolBean destruct
-     */
-    final public function __destruct()
-    {
-    }
-
-    /**
      * get context
      * @return Context
      */

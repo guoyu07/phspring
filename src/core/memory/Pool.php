@@ -21,9 +21,10 @@ class Pool extends Bean
     /**
      * get one object from pool
      * @param string $class
+     * @param array $definition
      * @return mixed
      */
-    public function get($class)
+    public function get($class, array $definition = [])
     {
         $pool = $this->_map[$class] ?? null;
         if ($pool === null) {
@@ -32,13 +33,17 @@ class Pool extends Bean
         if ($pool->count() > 0) {
             return $pool->shift();
         } else {
-            $definition = [
+            $definition = array_merge($definition, [
                 'gc' => [
                     'time' => time(),
                     'count' => 0
                 ]
-            ];
-            return Ac::getBean($class, null, [], $definition);
+            ]);
+            $clazz = new $class();
+            foreach ($definition as $prop => $val) {
+                $clazz->{$prop} = $val;
+            }
+            return $clazz;
         }
     }
 

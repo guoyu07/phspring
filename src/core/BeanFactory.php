@@ -210,7 +210,7 @@ class BeanFactory
             if ($context === null) {
                 throw new \Exception('Generate bean failed, because context is null.');
             }
-            $clazz = $context->pool->get($class);
+            return $context->pool->get($class, $definition);
         } elseif ($scope == self::SCOPE_SINGLETON || $scope === self::SCOPE_PROTOTYPE) {
             if (!$reflection->isInstantiable()) {
                 throw new \Exception($reflection->name);

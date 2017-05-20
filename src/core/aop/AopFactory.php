@@ -61,8 +61,8 @@ class AopFactory
             if ($method === 'get' && is_object($result) && $result instanceof PoolBean) {
                 /* @var $result PoolBean */
                 $result->incGcCount();
-                $context->recoverableBeans[] = $result;
                 $result->setContext($context);
+                $context->recoverableBeans[] = $result;
                 $class = get_class($result);
                 if (!isset(self::$reflections[$class])) {
                     $reflection = new \ReflectionClass($class);

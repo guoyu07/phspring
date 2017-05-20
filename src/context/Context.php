@@ -36,9 +36,10 @@ class Context extends Bean implements IRecoverable
      */
     public $log = null;
     /**
-     * @var Pool array
+     * Object pool
+     * @var Pool
      */
-    public $pool = [];
+    public $pool = null;
     /**
      * use to flag bean pool recover, that will auto recover bean to pool.
      * @var array
@@ -104,7 +105,8 @@ class Context extends Bean implements IRecoverable
         $this->output = null;
         foreach ($this->recoverableBeans as $key => $bean) {
             $this->pool->recover($bean);
-            unset($this->recoverableBeans[$key]);
         }
+        $this->recoverableBeans = [];
+        $this->pool = null;
     }
 }
