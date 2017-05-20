@@ -4,13 +4,11 @@
  */
 namespace phspring\mvc;
 
-use phspring\core\BeanPool;
-
 /**
  * Class Base
  * @package phspring\mvc
  */
-class Base extends BeanPool
+class Base extends \phspring\core\PoolBean
 {
 
 }

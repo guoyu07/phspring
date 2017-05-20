@@ -4,8 +4,10 @@
  */
 namespace phspring\context;
 
+use phspring\core\aop\AopFactory;
 use phspring\core\Bean;
 use phspring\core\IRecoverable;
+use phspring\core\memory\Pool;
 
 /**
  * Class Context
@@ -34,6 +36,10 @@ class Context extends Bean implements IRecoverable
      */
     public $log = null;
     /**
+     * @var Pool array
+     */
+    public $pool = [];
+    /**
      * use to flag bean pool recover, that will auto recover bean to pool.
      * @var array
      */
@@ -45,6 +51,7 @@ class Context extends Bean implements IRecoverable
     public function init()
     {
         $this->uuid = $this->genDistributedId();
+        $this->pool = AopFactory::getPool(Ac::getBean(Pool::class), $this);
     }
 
     /**
@@ -95,5 +102,9 @@ class Context extends Bean implements IRecoverable
         $this->log = null;
         $this->input = null;
         $this->output = null;
+        foreach ($this->recoverableBeans as $key => $bean) {
+            $this->pool->recover($bean);
+            unset($this->recoverableBeans[$key]);
+        }
     }
 }

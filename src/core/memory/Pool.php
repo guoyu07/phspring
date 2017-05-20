@@ -2,13 +2,14 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\core;
+namespace phspring\core\memory;
 
 use phspring\context\Ac;
+use phspring\core\Bean;
 
 /**
  * Class Pool
- * @package phspring\core
+ * @package phspring\core\memory
  */
 class Pool extends Bean
 {
@@ -31,20 +32,22 @@ class Pool extends Bean
         if ($pool->count() > 0) {
             return $pool->shift();
         } else {
-            $clazz = Ac::getBean($class, null, [], ['useCount' => 0, 'genTime' => time()]);
-            //$clazz = new $class();
-            //$clazz->useCount = 0;
-            //$clazz->genTime = time();
-            return $clazz;
+            $definition = [
+                'gc' => [
+                    'time' => time(),
+                    'count' => 0
+                ]
+            ];
+            return Ac::getBean($class, null, [], $definition);
         }
     }
 
     /**
      * recover a object to pool
      * @param string $class
-     * @param BeanPool $clazz
+     * @param Object $clazz
      */
-    public function recover(BeanPool $clazz)
+    public function recover($clazz)
     {
         $class = get_class($clazz);
         $pool = $this->_map[$class] ?? null;

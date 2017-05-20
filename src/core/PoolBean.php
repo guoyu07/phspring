@@ -7,10 +7,10 @@ namespace phspring\core;
 use phspring\context\Context;
 
 /**
- * Class BeanPool
+ * Class PoolBean
  * @package phspring\core
  */
-class BeanPool extends Bean implements IRecoverable
+class PoolBean extends Bean implements IRecoverable
 {
     /**
      * @var Context
@@ -24,6 +24,20 @@ class BeanPool extends Bean implements IRecoverable
         'count' => 0, // use count
         'time' => 0, // object gen time
     ];
+
+    /**
+     * PoolBean constructor.
+     */
+    final public function __construct()
+    {
+    }
+
+    /**
+     * PoolBean destruct
+     */
+    final public function __destruct()
+    {
+    }
 
     /**
      * get context
@@ -77,10 +91,10 @@ class BeanPool extends Bean implements IRecoverable
     }
 
     /**
-     * @param BeanPool $child
+     * @param PoolBean $child
      * @param array $properties
      */
-    public function resetProperties(BeanPool $child, array $properties = [])
+    public function resetProperties(PoolBean $child, array $properties = [])
     {
         if (empty($properties)) {
             return;

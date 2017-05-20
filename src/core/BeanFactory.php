@@ -31,9 +31,9 @@ class BeanFactory
     CONST SCOPE_POOL = 'pool';
 
     /**
-     * @var \phspring\core\BeanPool
+     * @var \phspring\core\PoolBean
      */
-    public $beanPool = null;
+    public $poolBean = null;
 
     /**
      * @var array [name1 => ['class' => '\\a\\b', 'scope' => 'pool', 'prop1' => 1]]
@@ -58,7 +58,7 @@ class BeanFactory
      */
     public function __construct(array $beans = [])
     {
-        $this->beanPool = new BeanPool();
+        $this->poolBean = new PoolBean();
         $this->initBeans($beans);
     }
 
@@ -77,11 +77,11 @@ class BeanFactory
      * @param string $name
      * @param Context $context
      * @param array $args constructor parameters.
-     * @param array $definition class definition.
+     * @param array|string $definition class definition.
      * @return object
      * @throws \Exception
      */
-    public function getBean($name, Context $context = null, $args = [], $definition = [])
+    public function getBean($name, Context $context = null, array $args = [], $definition = [])
     {
         if (isset($this->_singletons[$name])) {
             return $this->_singletons[$name];
@@ -105,11 +105,11 @@ class BeanFactory
 
     /**
      * @param string $name
-     * @param array $definition
+     * @param array|string $definition
      * @param array $args
      * @return $this
      */
-    public function setBean($name, Context $context = null, $definition = [], $args = [])
+    public function setBean($name, Context $context = null, $definition = [], array $args = [])
     {
         $this->_beans[$name] = $this->formatDefinition($name, $definition);
         //var_dump($this->_beans);
@@ -131,13 +131,14 @@ class BeanFactory
 
     /**
      * @param $name
+     * @param Context|null $context
      */
-    public function clearBean($name)
+    public function clearBean($name, Context $context = null)
     {
         if (isset($this->_beans[$name])) {
             $scope = $this->_beans[$name]['scope'];
-            if ($scope == self::SCOPE_POOL) {
-                $this->beanPool->clear($name);
+            if ($scope == self::SCOPE_POOL && $context) {
+                $context->pool->clear($name);
             } elseif ($scope == self::SCOPE_SINGLETON) {
                 unset($this->_singletons[$name]);
             }
@@ -198,7 +199,7 @@ class BeanFactory
      * @param array $definition Class define parameters
      * @return  Object
      */
-    private function generate($class, Context $context = null, $args, $definition)
+    private function generate($class, Context $context = null, array $args, array $definition)
     {
         /* @var $reflection ReflectionClass */
         list ($reflection, $refs) = $this->getRefs($class);
@@ -206,7 +207,10 @@ class BeanFactory
 
         $scope = $definition['scope'];
         if ($scope == self::SCOPE_POOL) {
-            $clazz = $this->beanPool->get($class);
+            if ($context === null) {
+                throw new \Exception('Generate bean failed, because context is null.');
+            }
+            $clazz = $context->pool->get($class);
         } elseif ($scope == self::SCOPE_SINGLETON || $scope === self::SCOPE_PROTOTYPE) {
             if (!$reflection->isInstantiable()) {
                 throw new \Exception($reflection->name);
@@ -216,6 +220,8 @@ class BeanFactory
                 $refs[$diff + $idx] = $arg;
             }
             $clazz = $reflection->newInstanceArgs($refs);
+        } else {
+            throw new \Exception('Generate bean failed.');
         }
 
         if (!empty($definition)) {

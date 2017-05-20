@@ -4,13 +4,13 @@
  */
 namespace phspring\beans\filter;
 
-use phspring\core\BeanPool;
+use phspring\core\PoolBean;
 
 /**
  * Class FilterInput
  * @package phspring\beans\filter
  */
-class FilterInput extends BeanPool
+class FilterInput extends PoolBean
 {
     /**
      * collection.

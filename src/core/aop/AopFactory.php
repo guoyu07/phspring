@@ -6,7 +6,7 @@ namespace phspring\core\aop;
 
 use phspring\context\Ac;
 use phspring\context\Context;
-use phspring\core\BeanPool;
+use phspring\core\PoolBean;
 use phspring\core\Pool;
 
 /**
@@ -21,15 +21,15 @@ class AopFactory
     protected static $reflections = [];
 
     /**
-     * get beanPool
+     * get object pool
      * @param Pool $pool
      * @param Context $context
      * @return Aop
      */
-    public static function getBeanPool(Pool $pool, Context $context)
+    public static function getPool(Pool $pool, Context $context)
     {
         $aopPool = new Aop($pool);
-        $gcConf = self::getBeanPoolGcConf();
+        $gcConf = self::getPoolBeanGcConf();
 
         $aopPool->register('onBefore', function ($method, $args) use ($context, $gcConf) {
             if ($method === 'recover') {
@@ -58,8 +58,8 @@ class AopFactory
         });
 
         $aopPool->register('onAfter', function ($method, $args, $result) use ($context) {
-            if ($method === 'get' && is_object($result) && $result instanceof BeanPool) {
-                /* @var $result \phspring\core\BeanPool */
+            if ($method === 'get' && is_object($result) && $result instanceof PoolBean) {
+                /* @var $result PoolBean */
                 $result->incGcCount();
                 $context->recoverableBeans[] = $result;
                 $result->setContext($context);
@@ -85,9 +85,9 @@ class AopFactory
      * Get bean pool gc config
      * @return array
      */
-    private static function getBeanPoolGcConf()
+    private static function getPoolBeanGcConf()
     {
-        $conf = Ac::config()->get('beanPool.gc', []);
+        $conf = Ac::config()->get('PoolBean.gc', []);
         $conf['enable'] = $conf['enable'] ?? false;
         $conf['expire'] = $conf['maxExpireTime'] ?? 0;
         $conf['count'] = $conf['maxUseCount'] ?? -1;
