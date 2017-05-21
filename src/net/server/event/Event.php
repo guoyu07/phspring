@@ -65,10 +65,10 @@ class Event implements IEvent
                 return true;
             case self::EV_TIMER:
             case self::EV_TIMER_ONCE:
-                $param = [$func, (array)$args, $flag, $fd, self::$timerId];
-                $event = new \Event($this->eventBase, -1, \Event::TIMEOUT | \Event::PERSIST,
-                    [$this, 'timerCallback'], $param);
-                if (!$event || !$event->addTimer($fd)) {
+            $param = [$func, (array)$args, $flag, $fd, self::$timerId];
+            $event = new \Event($this->eventBase, -1, \Event::TIMEOUT | \Event::PERSIST,
+                [$this, 'timerCallback'], $param);
+            if (!$event || !$event->addTimer($fd)) {
                     return false;
                 }
                 $this->eventTimer[self::$timerId] = $event;

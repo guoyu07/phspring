@@ -43,11 +43,11 @@ class Scheduler extends Bean
             }
 
             foreach ($this->ioCallback as $uuid => $callbacks) {
-                foreach ($callbacks as $key => $callBack) {
+                /* @var $callBack Base */
+                foreach ($callbacks as $callBack) {
                     if ($callBack->ioBack) {
                         continue;
                     }
-
                     if ($callBack->isTimeout()) {
                         $this->schedule($this->taskMap[$uuid]);
                     }
@@ -62,12 +62,14 @@ class Scheduler extends Bean
     public function run()
     {
         while (!$this->taskQueue->isEmpty()) {
+            /* @var $task Task */
             $task = $this->taskQueue->dequeue();
             $task->run();
             if (empty($task->routine)) {
                 continue;
             }
             if ($task->routine->valid() && ($task->routine->current() instanceof IBase)) {
+                //...
             } else {
                 if ($task->isFinished()) {
                     $task->destroy();

@@ -31,6 +31,7 @@ class Instance
         if (self::$instance == null) {
             new Instance();
         }
+
         return self::$instance;
     }
 }

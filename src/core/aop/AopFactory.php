@@ -66,8 +66,12 @@ class AopFactory
                 $class = get_class($result);
                 if (!isset(self::$reflections[$class])) {
                     $reflection = new \ReflectionClass($class);
-                    self::$reflections[$class] = array_diff_key($reflection->getDefaultProperties(),
-                        $reflection->getStaticProperties());
+                    $default = $reflection->getDefaultProperties();
+                    $ps = $reflection->getProperties(\ReflectionProperty::IS_PRIVATE | \ReflectionProperty::IS_STATIC);
+                    foreach ($ps as $val) {
+                        unset($default[$val->getName()]);
+                    }
+                    self::$reflections[$class] = $default;
                 }
             }
             $params['method'] = $method;

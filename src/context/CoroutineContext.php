@@ -4,6 +4,8 @@
  */
 namespace phspring\context;
 
+use phspring\mvc\Controller;
+
 /**
  * Class CoroutineContext
  * @package phspring\context
@@ -74,8 +76,8 @@ class CoroutineContext extends Context
 
     /**
      * @param string $controller
-     * @param string $controllerId
-     * @param string $methodId
+     * @param string $controllerName
+     * @param string $methodName
      */
     public function setController($controller, $controllerName, $methodName)
     {

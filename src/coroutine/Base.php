@@ -37,6 +37,7 @@ abstract class Base implements IBase
      */
     public $coroutine;
     /**
+     * io back or not
      * @var bool
      */
     public $ioBack = false;
@@ -48,15 +49,9 @@ abstract class Base implements IBase
     public function __construct($timeout = 0)
     {
         if (self::$maxTimeout == 0) {
-            self::$maxTimeout = Ac::config()->get('coroutine.timeout', 1000);
+            self::$maxTimeout = Ac::config()->get('coroutine.timeout', 5000);
         }
-
-        if ($timeout > 0) {
-            $this->timeout = $timeout;
-        } else {
-            $this->timeout = self::$maxTimeout;
-        }
-
+        $this->timeout = $timeout > 0 ? $timeout : self::$maxTimeout;
         $this->result = Instance::get();
         $this->requestTime = microtime(true);
     }
@@ -92,7 +87,8 @@ abstract class Base implements IBase
     }
 
     /**
-     * @param $logId
+     * Continue run
+     * @param string $uuid Request unique id
      * @return bool
      */
     public function continueRun($uuid)
@@ -100,7 +96,7 @@ abstract class Base implements IBase
         if (empty(Ac::$appContext->scheduler->ioCallback[$uuid])) {
             return true;
         }
-
+        /* @var $coroutine Base */
         foreach (Ac::$appContext->scheduler->ioCallback[$uuid] as $idx => $coroutine) {
             if ($coroutine->ioBack && !empty(Ac::$appContext->scheduler->taskMap[$uuid])) {
                 unset(Ac::$appContext->scheduler->ioCallback[$uuid][$idx]);

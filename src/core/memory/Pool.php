@@ -4,7 +4,6 @@
  */
 namespace phspring\core\memory;
 
-use phspring\context\Ac;
 use phspring\core\Bean;
 
 /**
@@ -33,12 +32,10 @@ class Pool extends Bean
         if ($pool->count() > 0) {
             return $pool->shift();
         } else {
-            $definition = array_merge($definition, [
-                'gc' => [
-                    'time' => time(),
-                    'count' => 0
-                ]
-            ]);
+            $definition['gc'] = [
+                'time' => time(),
+                'count' => 0
+            ];
             $clazz = new $class();
             foreach ($definition as $prop => $val) {
                 $clazz->{$prop} = $val;

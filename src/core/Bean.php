@@ -11,14 +11,10 @@ namespace phspring\core;
 class Bean
 {
     /**
-     * singleton / prototype / pool
+     * singleton|prototype|pool
      * @var string
      */
     public $scope = 'pool';
-    /**
-     * @var null
-     */
-    public $ref = null;
 
     /**
      * init

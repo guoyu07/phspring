@@ -218,14 +218,14 @@ class Tcp extends Connection
 
         // Attempt to send data directly.
         if ($this->sendBuffer === '') {
-            $len = @fwrite($this->socket, $sendBuffer);
+            $length = @fwrite($this->socket, $sendBuffer);
             // send successful.
-            if ($len === strlen($sendBuffer)) {
+            if ($length === strlen($sendBuffer)) {
                 return true;
             }
             // Send only part of the data.
-            if ($len > 0) {
-                $this->sendBuffer = substr($sendBuffer, $len);
+            if ($length > 0) {
+                $this->sendBuffer = substr($sendBuffer, $length);
             } else {
                 // Connection closed?
                 if (!is_resource($this->socket) || feof($this->socket)) {
@@ -365,51 +365,41 @@ class Tcp extends Connection
         if ($this->protocol) {
             $parser = $this->protocol;
             while ($this->recvBuffer !== '' && !$this->isPaused) {
-                // The current packet length is known.
                 if ($this->currentPackageLength) {
-                    // Data is not enough for a package.
                     if ($this->currentPackageLength > strlen($this->recvBuffer)) {
                         break;
                     }
                 } else {
-                    // Get current package length.
                     $this->currentPackageLength = $parser::input($this->recvBuffer, $this);
-                    // The packet length is unknown.
                     if ($this->currentPackageLength === 0) {
                         break;
                     } elseif ($this->currentPackageLength > 0 && $this->currentPackageLength <= self::$maxPackageSize) {
-                        // Data is not enough for a package.
                         if ($this->currentPackageLength > strlen($this->recvBuffer)) {
                             break;
                         }
-                    } // Wrong package.
-                    else {
-                        echo 'error package. package_length=' . var_export($this->currentPackageLength, true);
+                    } else {
+                        echo 'error package. packageLength=' . var_export($this->currentPackageLength, true);
                         $this->destroy();
                         return;
                     }
                 }
 
-                // The data is enough for a packet.
                 self::$statistics['totalRequest']++;
-                // The current packet length is equal to the length of the buffer.
                 if (strlen($this->recvBuffer) === $this->currentPackageLength) {
-                    $one_request_buffer = $this->recvBuffer;
+                    $oneRequestBuffer = $this->recvBuffer;
                     $this->recvBuffer = '';
                 } else {
-                    // Get a full package from the buffer.
-                    $one_request_buffer = substr($this->recvBuffer, 0, $this->currentPackageLength);
+                    $oneRequestBuffer = substr($this->recvBuffer, 0, $this->currentPackageLength);
                     // Remove the current package from the receive buffer.
                     $this->recvBuffer = substr($this->recvBuffer, $this->currentPackageLength);
                 }
-                // Reset the current packet length to 0.
                 $this->currentPackageLength = 0;
                 if (!$this->onMessage) {
                     continue;
                 }
                 try {
                     // Decode request buffer before Emitting onMessage callback.
-                    call_user_func($this->onMessage, $this, $parser::decode($one_request_buffer, $this));
+                    call_user_func($this->onMessage, $this, $parser::decode($oneRequestBuffer, $this));
                 } catch (\Throwable $e) {
                     Util::log($e) && exit(250);
                 }
@@ -443,8 +433,8 @@ class Tcp extends Connection
      */
     public function baseWrite()
     {
-        $len = @fwrite($this->socket, $this->sendBuffer);
-        if ($len === strlen($this->sendBuffer)) {
+        $length = @fwrite($this->socket, $this->sendBuffer);
+        if ($length === strlen($this->sendBuffer)) {
             Manager::getGlobalEvent()->del($this->socket, IEvent::EV_WRITE);
             $this->sendBuffer = '';
             // Try to emit onBufferDrain callback when the send buffer becomes empty.
@@ -460,8 +450,8 @@ class Tcp extends Connection
             }
             return true;
         }
-        if ($len > 0) {
-            $this->sendBuffer = substr($this->sendBuffer, $len);
+        if ($length > 0) {
+            $this->sendBuffer = substr($this->sendBuffer, $length);
         } else {
             self::$statistics['sendFail']++;
             $this->destroy();
@@ -471,7 +461,7 @@ class Tcp extends Connection
     /**
      * This method pulls all the data out of a readable stream, and writes it to the supplied destination.
      *
-     * @param TcpConnection $dest
+     * @param Tcp $dest
      * @return void
      */
     public function pipe($dest)
