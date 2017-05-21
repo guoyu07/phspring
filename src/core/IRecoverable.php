@@ -4,8 +4,6 @@
  */
 namespace phspring\core;
 
-use phspring\context\Context;
-
 /**
  * Class IRecoverable
  * @package phspring\core

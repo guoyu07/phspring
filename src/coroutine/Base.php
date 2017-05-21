@@ -93,13 +93,13 @@ abstract class Base implements IBase
      */
     public function continueRun($uuid)
     {
-        if (empty(Ac::$appContext->scheduler->ioCallback[$uuid])) {
+        if (empty(Ac::$appContext->scheduler->ioCallbacks[$uuid])) {
             return true;
         }
         /* @var $coroutine Base */
-        foreach (Ac::$appContext->scheduler->ioCallback[$uuid] as $idx => $coroutine) {
+        foreach (Ac::$appContext->scheduler->ioCallbacks[$uuid] as $idx => $coroutine) {
             if ($coroutine->ioBack && !empty(Ac::$appContext->scheduler->taskMap[$uuid])) {
-                unset(Ac::$appContext->scheduler->ioCallback[$uuid][$idx]);
+                unset(Ac::$appContext->scheduler->ioCallbacks[$uuid][$idx]);
                 Ac::$appContext->scheduler->schedule(Ac::$appContext->scheduler->taskMap[$uuid]);
             } else {
                 break;

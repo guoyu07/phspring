@@ -44,9 +44,9 @@ class Ac
      * @param array $params
      * @return mixed
      */
-    public static function getBean($name, array $args = [], $definition)
+    public static function getBean($name, Context $context = null, array $args = [], $definition)
     {
-        return self::$appContext->getBean($name, $args, $definition);
+        return self::$appContext->getBean($name, $context, $args, $definition);
     }
 
     /**

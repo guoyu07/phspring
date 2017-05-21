@@ -7,7 +7,6 @@ namespace phspring\core\aop;
 use phspring\context\Ac;
 use phspring\context\Context;
 use phspring\core\PoolBean;
-use phspring\core\Pool;
 
 /**
  * Class AopFactory
@@ -32,7 +31,7 @@ class AopFactory
         $gcConf = self::getPoolBeanGcConf();
 
         $aopPool->register('onBefore', function ($method, $args) use ($context, $gcConf) {
-            if ($method === 'recover') {
+            if ($method === 'push') {
                 if (method_exists($args[0], 'scavenger')) {
                     $args[0]->scavenger();
                 }

@@ -16,7 +16,7 @@ class Scheduler extends Bean
     /**
      * @var array
      */
-    public $ioCallback;
+    public $ioCallbacks;
     /**
      * @var \SplQueue
      */
@@ -38,11 +38,11 @@ class Scheduler extends Bean
         });
 
         swoole_timer_tick(1000, function ($timerId) {
-            if (empty($this->ioCallback)) {
+            if (empty($this->ioCallbacks)) {
                 return true;
             }
 
-            foreach ($this->ioCallback as $uuid => $callbacks) {
+            foreach ($this->ioCallbacks as $uuid => $callbacks) {
                 /* @var $callBack Base */
                 foreach ($callbacks as $callBack) {
                     if ($callBack->ioBack) {
@@ -97,7 +97,7 @@ class Scheduler extends Bean
     public function start(\Generator $routine, CoroutineContext $coroutineContext)
     {
         $task = new Task($routine, $coroutineContext);
-        $this->ioCallback[$coroutineContext->uuid] = [];
+        $this->ioCallbacks[$coroutineContext->uuid] = [];
         $this->taskMap[$coroutineContext->uuid] = $task;
         $this->taskQueue->enqueue($task);
     }

@@ -45,11 +45,11 @@ class Pool extends Bean
     }
 
     /**
-     * recover a object to pool
+     * push a object to pool
      * @param string $class
      * @param Object $clazz
      */
-    public function recover($clazz)
+    public function push($clazz)
     {
         $class = get_class($clazz);
         $pool = $this->_map[$class] ?? null;

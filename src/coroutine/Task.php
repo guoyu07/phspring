@@ -196,7 +196,7 @@ class Task
     {
         if (!$this->destroy) {
             unset(Ac::$appContext->scheduler->taskMap[$this->coroutineContext->uuid]);
-            unset(Ac::$appContext->scheduler->ioCallback[$this->coroutineContext->uuid]);
+            unset(Ac::$appContext->scheduler->ioCallbacks[$this->coroutineContext->uuid]);
             $this->coroutineContext->destroy();
             $this->coroutineContext = null;
             $this->stack = null;

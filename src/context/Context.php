@@ -52,7 +52,7 @@ class Context extends Bean implements IRecoverable
     public function init()
     {
         $this->uuid = $this->genDistributedId();
-        $this->pool = AopFactory::getPool(Ac::getBean(Pool::class), $this);
+        $this->pool = AopFactory::getPool(Ac::getBean('pool'), $this);
     }
 
     /**

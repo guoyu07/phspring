@@ -5,6 +5,7 @@
 namespace phspring\context;
 
 use phspring\core\BeanFactory;
+use phspring\core\memory\Pool;
 use phspring\toolbox\config\Configurator;
 
 /**
@@ -55,6 +56,7 @@ class ApplicationContext extends BeanFactory
         $this->setI18n();
         $this->setPacker();
         $this->setRouter();
+        $this->setPool();
     }
 
     /**
@@ -103,5 +105,17 @@ class ApplicationContext extends BeanFactory
     protected function setRouter()
     {
         $this->router = $this->getBean('router');
+    }
+
+    /**
+     * set object pool
+     */
+    protected function setPool()
+    {
+        $definition = [
+            'class' => Pool::class,
+            'scope' => BeanFactory::SCOPE_SINGLETON
+        ];
+        $this->setBean('pool', null, $definition);
     }
 }
