@@ -11,11 +11,11 @@ namespace phspring\beans\filter;
 interface IFilter
 {
     /**
-     * 在执行 method 前调用
+     * 在执行 action 前调用
      * @param FilterInput $input
      * @return bool
      */
-    function beforeMethod(FilterInput $input);
+    function beforeAction(FilterInput $input);
 
     /**
      * filter fail.

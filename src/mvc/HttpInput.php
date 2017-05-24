@@ -117,10 +117,10 @@ class HttpInput extends Input
     /**
      * @return string
      */
-    public function getMethod()
+    public function getAction()
     {
-        if (isset($_POST[$this->requestMethod])) {
-            return strtoupper($_POST[$this->requestMethod]);
+        if (isset($_POST[$this->requestAction])) {
+            return strtoupper($_POST[$this->requestAction]);
         }
         if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
             return strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);

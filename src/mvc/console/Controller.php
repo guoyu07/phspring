@@ -2,18 +2,18 @@
 /**
  * This file is part of the phspring package.
  */
-namespace phspring\mvc;
+namespace phspring\mvc\console;
 
 /**
  * Class Controller
- * @package phspring\mvc
+ * @package phspring\mvc\console
  */
-class Controller extends Base
+class Controller extends \phspring\mvc\Controller
 {
     /**
-     * @var bool
+     * @var string
      */
-    public $mode = 'web';
+    public $mode = 'console';
 
     /**
      * run action
@@ -28,7 +28,7 @@ class Controller extends Base
      */
     public function scavenger()
     {
-        $this->isRpc = false;
+        $this->mode = 'console';
         parent::scavenger();
     }
 }

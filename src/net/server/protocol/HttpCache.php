@@ -37,7 +37,7 @@ class HttpCache
         402 => 'Payment Required',
         403 => 'Forbidden',
         404 => 'Not Found',
-        405 => 'Method Not Allowed',
+        405 => 'Action Not Allowed',
         406 => 'Not Acceptable',
         407 => 'Proxy Authentication Required',
         408 => 'Request Timeout',

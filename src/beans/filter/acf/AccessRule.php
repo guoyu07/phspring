@@ -19,7 +19,7 @@ class AccessRule
     /**
      * @var
      */
-    public $methods;
+    public $actions;
     /**
      * @var
      */
@@ -59,12 +59,12 @@ class AccessRule
      */
     public function allows(AccessUser $user, FilterInput $input)
     {
-        if ($this->matchMethod($input->method)
+        if ($this->matchAction($input->action)
             && $this->matchRole($user)
             && $this->matchIP($input->ip)
             && $this->matchVerb($input->verb)
             && $this->matchController($input->controller)
-            && $this->matchCustom($input->method)
+            && $this->matchCustom($input->action)
         ) {
             return $this->allow ? true : false;
         } else {
@@ -73,12 +73,12 @@ class AccessRule
     }
 
     /**
-     * @param $method
+     * @param $action
      * @return bool
      */
-    protected function matchMethod($method)
+    protected function matchAction($action)
     {
-        return empty($this->methods) || in_array($method, $this->methods, true);
+        return empty($this->actions) || in_array($action, $this->actions, true);
     }
 
     /**
@@ -138,7 +138,7 @@ class AccessRule
     }
 
     /**
-     * @param string $verb the request method.
+     * @param string $verb the request action.
      * @return bool whether the rule applies to the request
      */
     protected function matchVerb($verb)
@@ -147,11 +147,11 @@ class AccessRule
     }
 
     /**
-     * @param string $method the action to be performed
+     * @param string $action the action to be performed
      * @return bool whether the rule should be applied
      */
-    protected function matchCustom($method)
+    protected function matchCustom($action)
     {
-        return empty($this->matchCallback) || call_user_func($this->matchCallback, $this, $method);
+        return empty($this->matchCallback) || call_user_func($this->matchCallback, $this, $action);
     }
 }

@@ -79,28 +79,28 @@ class AsyncTcp extends Tcp
      */
     public function __construct($remoteAddr, $contextOption = null)
     {
-        $addressInfo = parse_url($remoteAddr);
-        if (!$addressInfo) {
+        $addrInfo = parse_url($remoteAddr);
+        if (!$addrInfo) {
             list($scheme, $this->remoteAddr) = explode(':', $remoteAddr, 2);
             if (!$this->remoteAddr) {
                 throw new \Exception('Bad remote_address');
             }
         } else {
-            if (!isset($addressInfo['port'])) {
-                $addressInfo['port'] = 80;
+            if (!isset($addrInfo['port'])) {
+                $addrInfo['port'] = 80;
             }
-            if (!isset($addressInfo['path'])) {
-                $addressInfo['path'] = '/';
+            if (!isset($addrInfo['path'])) {
+                $addrInfo['path'] = '/';
             }
-            if (!isset($addressInfo['query'])) {
-                $addressInfo['query'] = '';
+            if (!isset($addrInfo['query'])) {
+                $addrInfo['query'] = '';
             } else {
-                $addressInfo['query'] = '?' . $addressInfo['query'];
+                $addrInfo['query'] = '?' . $addrInfo['query'];
             }
-            $this->remoteAddr = "{$addressInfo['host']}:{$addressInfo['port']}";
-            $this->remoteHost = $addressInfo['host'];
-            $this->remoteURI = "{$addressInfo['path']}{$addressInfo['query']}";
-            $scheme = isset($addressInfo['scheme']) ? $addressInfo['scheme'] : 'tcp';
+            $this->remoteAddr = "{$addrInfo['host']}:{$addrInfo['port']}";
+            $this->remoteHost = $addrInfo['host'];
+            $this->remoteURI = "{$addrInfo['path']}{$addrInfo['query']}";
+            $scheme = isset($addrInfo['scheme']) ? $addrInfo['scheme'] : 'tcp';
         }
 
         $this->id = self::$idRecorder++;

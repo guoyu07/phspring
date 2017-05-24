@@ -20,7 +20,7 @@ interface IRoute
     /**
      * @return string
      */
-    public function getMethodName();
+    public function getActionName();
 
     /**
      * @return array

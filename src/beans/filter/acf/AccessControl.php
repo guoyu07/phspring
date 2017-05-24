@@ -34,7 +34,7 @@ use phspring\beans\filter\FilterInput;
  * }
  * ```
  */
-class AccessControl extends MethodFilter
+class AccessControl extends ActionFilter
 {
     /**
      * @var AccessUser|string
@@ -62,19 +62,19 @@ class AccessControl extends MethodFilter
     }
 
     /**
-     * This method is invoked right before an method is to be executed (after all possible filters.)
-     * You may override this method to do last-minute preparation for the method.
+     * This action is invoked right before an action is to be executed (after all possible filters.)
+     * You may override this action to do last-minute preparation for the action.
      * @param string $controller the controller.
-     * @param string $method the method.
+     * @param string $action the action.
      * @param FilterInput $request the request object.
-     * @return bool whether the method should continue to be executed.
+     * @return bool whether the action should continue to be executed.
      */
-    public function beforeMethod(FilterInput $input)
+    public function beforeAction(FilterInput $input)
     {
         $this->initRules();
 
-        $method = $input->method;
-        if (!$this->isActive($method)) {
+        $action = $input->action;
+        if (!$this->isActive($action)) {
             return true;
         }
 
@@ -129,7 +129,7 @@ class AccessControl extends MethodFilter
         if ($user->getIsGuest()) {
             $user->loginRequired();
         } else {
-            throw new \Exception('You are not allowed to perform this method.');
+            throw new \Exception('You are not allowed to perform this action.');
         }
     }
 }

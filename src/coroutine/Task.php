@@ -6,13 +6,15 @@ namespace phspring\coroutine;
 
 use phspring\context\Ac;
 use phspring\context\CoroutineContext;
+use phspring\core\IRecoverable;
+use phspring\core\PoolBean;
 use phspring\exception\CoroutineException;
 
 /**
  * Class Task
  * @package phspring\coroutine
  */
-class Task
+class Task extends PoolBean
 {
     /**
      * @var \Generator
@@ -25,7 +27,7 @@ class Task
     /**
      * @var bool
      */
-    public $destroy = false;
+    public $clear = false;
     /**
      * @var array
      */
@@ -36,11 +38,11 @@ class Task
     protected $stack;
 
     /**
-     * Task constructor.
+     * Task init.
      * @param \Generator $routine
      * @param CoroutineContext $coroutineContext
      */
-    public function __construct(\Generator $routine, CoroutineContext $coroutineContext)
+    public function init(\Generator $routine, CoroutineContext $coroutineContext)
     {
         $this->routine = $routine;
         $this->coroutineContext = $coroutineContext;
@@ -141,8 +143,8 @@ class Task
         }
         $this->coroutineContext->getController()->log->warning($message);
 
-        if (!empty($value) && $value instanceof IBase && method_exists($value, 'destroy')) {
-            $value->destroy();
+        if (!empty($value) && $value instanceof IBase && method_exists($value, 'scavenger')) {
+            $value->scavenger();
         }
 
         return $runTaskException;
@@ -182,26 +184,27 @@ class Task
                 $this->coroutineContext->getController());
         }
 
-        if (!empty($value) && $value instanceof IBase && method_exists($value, 'destroy')) {
-            $value->destroy();
+        if (!empty($value) && $value instanceof IBase && method_exists($value, 'scavenger')) {
+            $value->scavenger();
         }
 
         return $runTaskException;
     }
 
     /**
-     * destroy
+     * scavenger
      */
-    public function destroy()
+    public function scavenger()
     {
-        if (!$this->destroy) {
+        if (!$this->clear) {
             unset(Ac::$appContext->scheduler->taskMap[$this->coroutineContext->uuid]);
             unset(Ac::$appContext->scheduler->ioCallbacks[$this->coroutineContext->uuid]);
-            $this->coroutineContext->destroy();
+            $this->coroutineContext->scavenger();
             $this->coroutineContext = null;
             $this->stack = null;
             $this->routine = null;
-            $this->destroy = true;
+            $this->clear = true;
+            Ac::getBean('pool')->push($this);
             return true;
         } else {
             return false;
@@ -209,7 +212,7 @@ class Task
     }
 
     /**
-     * [isFinished 判断该task是否完成]
+     * Check task is finished.
      * @return boolean [description]
      */
     public function isFinished()

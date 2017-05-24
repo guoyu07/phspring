@@ -82,7 +82,7 @@ class Log extends Logger implements ILog
 
     public function notice($message, array $context = [])
     {
-        // TODO: Implement notice() method.
+        // TODO: Implement notice() action.
     }
 
     public function info($message, array $context = [])

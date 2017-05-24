@@ -4,6 +4,7 @@
  */
 namespace phspring\coroutine;
 
+use phspring\context\Ac;
 use phspring\context\CoroutineContext;
 use phspring\core\Bean;
 
@@ -72,7 +73,7 @@ class Scheduler extends Bean
                 //...
             } else {
                 if ($task->isFinished()) {
-                    $task->destroy();
+                    $task->scavenger();
                 } else {
                     $this->schedule($task);
                 }
@@ -96,7 +97,9 @@ class Scheduler extends Bean
      */
     public function start(\Generator $routine, CoroutineContext $coroutineContext)
     {
-        $task = new Task($routine, $coroutineContext);
+        /* @var $task Task */
+        $task = Ac::getBean(Task::class, $coroutineContext);
+        $task->init($routine, $coroutineContext);
         $this->ioCallbacks[$coroutineContext->uuid] = [];
         $this->taskMap[$coroutineContext->uuid] = $task;
         $this->taskQueue->enqueue($task);

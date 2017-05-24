@@ -23,7 +23,7 @@ class CoroutineContext extends Context
     /**
      * @var string
      */
-    protected $methodName;
+    protected $actionName;
     /**
      * @var array
      */
@@ -77,14 +77,14 @@ class CoroutineContext extends Context
     /**
      * @param string $controller
      * @param string $controllerName
-     * @param string $methodName
+     * @param string $actionName
      */
-    public function setController($controller, $controllerName, $methodName)
+    public function setController($controller, $controllerName, $actionName)
     {
         $this->controller = $controller;
         $this->controllerName = $controllerName;
-        $this->methodName = $methodName;
-        $this->yieldStack[$this->yieldLayer][] = "| # Target function-> $controllerName::$methodName";
+        $this->actionName = $actionName;
+        $this->yieldStack[$this->yieldLayer][] = "| # Target function-> $controllerName::$actionName";
     }
 
     /**

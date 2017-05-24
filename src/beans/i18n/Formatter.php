@@ -169,7 +169,7 @@ class Formatter extends Bean
                 // if param is given, replace it with a number
                 if (!isset($map[$param])) {
                     $map[$param] = count($map);
-                    // make sure only used params are passed to format method
+                    // make sure only used params are passed to format action
                     $resultingParams[$map[$param]] = $givenParams[$param];
                 }
                 $token[0] = $map[$param];

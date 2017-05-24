@@ -26,7 +26,7 @@ class Route extends Bean implements IRoute
     /**
      * @var string
      */
-    private $_methodName = '';
+    private $_actionName = '';
 
     /**
      * @var null
@@ -44,9 +44,9 @@ class Route extends Bean implements IRoute
     /**
      * @return string
      */
-    public function getMethodName()
+    public function getActionName()
     {
-        return $this->_methodName;
+        return $this->_actionName;
     }
 
     /**
@@ -63,9 +63,9 @@ class Route extends Bean implements IRoute
     public function parseRequest($data)
     {
         $this->_controllerName = $data['controllerName'];
-        $this->_controllerName = $data['methodName'];
+        $this->_controllerName = $data['actionName'];
 
-        return [$this->_controllerName, $this->_methodName, $this->_params];
+        return [$this->_controllerName, $this->_actionName, $this->_params];
     }
 
     /**
@@ -85,12 +85,12 @@ class Route extends Bean implements IRoute
         if (count($route) < 2) {
             return false;
         }
-        $this->_methodName = array_pop($route);
+        $this->_actionName = array_pop($route);
         $this->_controllerName = implode('\\', $route);
 
         $this->_params = $httpInput->getQueryParams();
 
-        return [$this->_controllerName, $this->_methodName, $this->_params];
+        return [$this->_controllerName, $this->_actionName, $this->_params];
     }
 
     /**
