@@ -57,39 +57,33 @@ class Timer
     /**
      * Add a timer.
      *
-     * @param int $time_interval
+     * @param int $timeInterval
      * @param callback $func
      * @param mixed $args
      * @param bool $persistent
      * @return int/false
      */
-    public static function add($timeInterval, $func, $args = [], $persistent = true)
+    public static function add($timeInterval, callable $func, $args = [], $persistent = true)
     {
         if ($timeInterval <= 0) {
-            echo new \Exception("bad time_interval");
+            echo new \Exception('Bad timeInterval');
             return false;
         }
 
         if (self::$_event) {
-            return self::$_event->add($timeInterval,
-                $persistent ? IEvent::EV_TIMER : IEvent::EV_TIMER_ONCE, $func, $args);
-        }
-
-        if (!is_callable($func)) {
-            echo new \Exception('not callable');
-            return false;
+            return self::$_event->add($timeInterval, $persistent ? IEvent::EV_TIMER : IEvent::EV_TIMER_ONCE, $func,
+                $args);
         }
 
         if (empty(self::$_tasks)) {
             pcntl_alarm(1);
         }
 
-        $now = time();
-        $runTime = $now + $timeInterval;
-        if (!isset(self::$_tasks[$runTime])) {
-            self::$_tasks[$runTime] = [];
+        $runtime = time() + $timeInterval;
+        if (!isset(self::$_tasks[$runtime])) {
+            self::$_tasks[$runtime] = [];
         }
-        self::$_tasks[$runTime][] = [$func, (array)$args, $persistent, $timeInterval];
+        self::$_tasks[$runtime][] = [$func, (array)$args, $persistent, $timeInterval];
 
         return 1;
     }

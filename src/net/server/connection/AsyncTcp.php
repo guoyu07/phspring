@@ -141,15 +141,15 @@ class AsyncTcp extends Tcp
         // Open socket connection asynchronously.
         if ($this->contextOption) {
             $context = stream_context_create($this->contextOption);
-            $this->socket = stream_socket_client("{$this->transport}://{$this->remoteAddr}", $errno, $errMsg, 0,
+            $this->socket = stream_socket_client("{$this->transport}://{$this->remoteAddr}", $errno, $errstr, 0,
                 STREAM_CLIENT_ASYNC_CONNECT, $context);
         } else {
-            $this->socket = stream_socket_client("{$this->transport}://{$this->remoteAddr}", $errno, $errMsg, 0,
+            $this->socket = stream_socket_client("{$this->transport}://{$this->remoteAddr}", $errno, $errstr, 0,
                 STREAM_CLIENT_ASYNC_CONNECT);
         }
         // If failed attempt to emit onError callback.
         if (!$this->socket) {
-            $this->emitError(Macro::PHSPRING_CONNECT_FAIL, $errMsg);
+            $this->emitError(Macro::PHSPRING_CONNECT_FAIL, $errstr);
             if ($this->status === self::STATUS_CLOSING) {
                 $this->destroy();
             }

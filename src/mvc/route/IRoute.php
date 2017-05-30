@@ -15,6 +15,11 @@ interface IRoute
     /**
      * @return string
      */
+    public function getModuleName();
+
+    /**
+     * @return string
+     */
     public function getControllerName();
 
     /**

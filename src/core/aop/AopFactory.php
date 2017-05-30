@@ -32,7 +32,7 @@ class AopFactory
 
         $aopPool->register('onBefore', function ($method, $args) use ($context, $gcConf) {
             if ($method === 'push') {
-                if (method_exists($args[0], 'scavenger')) {
+                if (method_exists($args[0], 'scavenger')) { // cleanup
                     $args[0]->scavenger();
                 }
                 $class = get_class($args[0]);

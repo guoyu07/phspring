@@ -67,9 +67,9 @@ class BeanFactory
      */
     public function initBeans(array $beans)
     {
-        foreach ($beans as $name => $definition) {
+        foreach ($beans as $name => $option) {
             // cannot pool scope.
-            $this->setBean($name, $definition);
+            $this->setBean($name, $option);
         }
     }
 
@@ -77,24 +77,24 @@ class BeanFactory
      * @param string $name
      * @param Context $context
      * @param array $args constructor parameters.
-     * @param array|string $definition class definition.
+     * @param array|string $option class definition.
      * @return object
      * @throws \Exception
      */
-    public function getBean($name, Context $context = null, array $args = [], $definition = [])
+    public function getBean($name, Context $context = null, array $args = [], $option = [])
     {
         if (isset($this->_singletons[$name])) {
             return $this->_singletons[$name];
         }
         if (!isset($this->_beans[$name])) {
-            $this->setBean($name, $definition, $args);
+            $this->setBean($name, $option, $args);
         }
 
         $config = $this->_beans[$name];
         if (is_array($config)) {
             $class = $config['class'];
             unset($config['class']);
-            $config = array_merge($config, $definition);
+            $config = array_merge($config, $option);
             $clazz = $this->generate($class, $context, $args, $config);
 
             return $clazz;
@@ -105,16 +105,16 @@ class BeanFactory
 
     /**
      * @param string $name
-     * @param array|string $definition
+     * @param array|string $option
      * @param array $args
      * @return $this
      */
-    public function setBean($name, Context $context = null, $definition = [], array $args = [])
+    public function setBean($name, Context $context = null, $option = [], array $args = [])
     {
-        $this->_beans[$name] = $this->formatDefinition($name, $definition);
+        $this->_beans[$name] = $this->formatDefinition($name, $option);
         //var_dump($this->_beans);
-        if ($definition['scope'] === self::SCOPE_SINGLETON) {
-            $this->_singletons[$name] = $this->generate($this->_beans[$name]['class'], $context, $args, $definition);
+        if ($option['scope'] === self::SCOPE_SINGLETON) {
+            $this->_singletons[$name] = $this->generate($this->_beans[$name]['class'], $context, $args, $option);
         }
 
         return $this;
@@ -161,32 +161,32 @@ class BeanFactory
 
     /**
      * @param string $name
-     * @param mixed $definition
+     * @param mixed $option
      * @return array|string
      * @throws InvalidConfigException
      */
-    private function formatDefinition($name, $definition)
+    private function formatDefinition($name, $option)
     {
-        if (empty($definition)) {
+        if (empty($option)) {
             if (strpos($name, '\\') === false) {
                 throw new InvalidConfigException('Bean class attribute is required.');
             }
             return ['name' => $name, 'scope' => self::SCOPE_POOL, 'class' => $name];
-        } elseif (is_string($definition)) {
-            if (strpos($definition, '\\') === false) {
+        } elseif (is_string($option)) {
+            if (strpos($option, '\\') === false) {
                 throw new InvalidConfigException('Bean class attribute is required.');
             }
-            return ['name' => $name, 'scope' => self::SCOPE_POOL, 'class' => $definition];
-        } elseif (is_array($definition)) {
-            if (!isset($definition['class'])) {
+            return ['name' => $name, 'scope' => self::SCOPE_POOL, 'class' => $option];
+        } elseif (is_array($option)) {
+            if (!isset($option['class'])) {
                 if (strpos($name, '\\') === false) {
                     throw new InvalidConfigException('Bean class attribute is required.');
                 } else {
-                    $definition['class'] = $name;
+                    $option['class'] = $name;
                 }
             }
-            $definition['scope'] = $definition['scope'] ?? self::SCOPE_POOL;
-            return $definition;
+            $option['scope'] = $option['scope'] ?? self::SCOPE_POOL;
+            return $option;
         }
 
         throw new InvalidConfigException('Bean class attribute is required.');
@@ -196,21 +196,21 @@ class BeanFactory
      * @param string $class Class name
      * @param Context $context
      * @param array $args Class construct parameters
-     * @param array $definition Class define parameters
+     * @param array $option Class define parameters
      * @return  Object
      */
-    private function generate($class, Context $context = null, array $args, array $definition)
+    private function generate($class, Context $context = null, array $args, array $option)
     {
         /* @var $reflection ReflectionClass */
         list ($reflection, $refs) = $this->getRefs($class);
         $refs = $this->resolveRefs($refs, $reflection, $context);
 
-        $scope = $definition['scope'];
+        $scope = $option['scope'];
         if ($scope == self::SCOPE_POOL) {
             if ($context === null) {
                 throw new \Exception('Generate bean failed, because context is null.');
             }
-            return $context->pool->get($class, $definition);
+            return $context->pool->get($class, $option);
         } elseif ($scope == self::SCOPE_SINGLETON || $scope === self::SCOPE_PROTOTYPE) {
             if (!$reflection->isInstantiable()) {
                 throw new \Exception($reflection->name);
@@ -224,9 +224,9 @@ class BeanFactory
             throw new \Exception('Generate bean failed.');
         }
 
-        if (!empty($definition)) {
-            unset($definition['class']);
-            foreach ($definition as $prop => $val) {
+        if (!empty($option)) {
+            unset($option['class']);
+            foreach ($option as $prop => $val) {
                 //var_dump('prop=' . $prop);
                 $clazz->{$prop} = $val;
             }

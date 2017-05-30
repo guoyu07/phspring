@@ -4,11 +4,13 @@
  */
 namespace phspring\net\server\connection;
 
+use phspring\core\PoolBean;
+
 /**
  * Class Connection
  * @package phspring\net\server\connection
  */
-abstract class  Connection
+abstract class  Connection extends PoolBean
 {
     /**
      * Statistics for status command.

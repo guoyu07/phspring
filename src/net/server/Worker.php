@@ -63,13 +63,13 @@ class Worker extends \phspring\net\server\base\Worker
         // Flag.
         $flags = $this->transport === 'udp' ? STREAM_SERVER_BIND : STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
         $errno = 0;
-        $errMsg = '';
+        $errstr = '';
         if ($this->reusePort) {
             stream_context_set_option($this->socketContext, 'socket', 'so_reuseport', 1);
         }
-        $this->mainSocket = stream_socket_server($localSocket, $errno, $errMsg, $flags, $this->socketContext);
+        $this->mainSocket = stream_socket_server($localSocket, $errno, $errstr, $flags, $this->socketContext);
         if (!$this->mainSocket) {
-            throw new \Exception($errMsg);
+            throw new \Exception($errstr);
         }
         if ($this->transport === 'ssl') {
             stream_socket_enable_crypto($this->mainSocket, false);

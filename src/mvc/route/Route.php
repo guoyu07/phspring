@@ -22,16 +22,27 @@ class Route extends Bean implements IRoute
     /**
      * @var string
      */
+    private $_moduleName = '';
+    /**
+     * @var string
+     */
     private $_controllerName = '';
     /**
      * @var string
      */
     private $_actionName = '';
-
     /**
      * @var null
      */
     private $_params = null;
+
+    /**
+     * @return string
+     */
+    public function getModuleName()
+    {
+        return $this->_moduleName;
+    }
 
     /**
      * @return string
@@ -62,8 +73,9 @@ class Route extends Bean implements IRoute
      */
     public function parseRequest($data)
     {
+        $this->_moduleName = $data['moduleName'];
         $this->_controllerName = $data['controllerName'];
-        $this->_controllerName = $data['actionName'];
+        $this->_actionName = $data['actionName'];
 
         return [$this->_controllerName, $this->_actionName, $this->_params];
     }
