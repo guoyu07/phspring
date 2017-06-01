@@ -5,10 +5,10 @@
 namespace phspring\core;
 
 /**
- * Class IRecoverable
+ * Class IReusable
  * @package phspring\core
  */
-interface IRecoverable
+interface IReusable
 {
     /**
      * bean pool clear

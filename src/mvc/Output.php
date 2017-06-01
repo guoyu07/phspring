@@ -5,13 +5,13 @@
 namespace phspring\mvc;
 
 use phspring\core\Bean;
-use phspring\core\IRecoverable;
+use phspring\core\IReusable;
 
 /**
  * Class Output
  * @package phspring\mvc
  */
-class Output extends Bean implements IRecoverable
+class Output extends Bean implements IReusable
 {
     /**
      * @param $data

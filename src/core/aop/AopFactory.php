@@ -61,7 +61,7 @@ class AopFactory
                 /* @var $result PoolBean */
                 $result->incGcCount();
                 $result->setContext($context);
-                $context->recoverableBeans[] = $result;
+                $context->reusableBeans[] = $result;
                 $class = get_class($result);
                 if (!isset(self::$reflections[$class])) {
                     $reflection = new \ReflectionClass($class);

@@ -6,14 +6,14 @@ namespace phspring\context;
 
 use phspring\core\aop\AopFactory;
 use phspring\core\Bean;
-use phspring\core\IRecoverable;
+use phspring\core\IReusable;
 use phspring\core\memory\Pool;
 
 /**
  * Class Context
  * @package phspring\context
  */
-class Context extends Bean implements IRecoverable
+class Context extends Bean implements IReusable
 {
     /**
      * @var string unique request id
@@ -44,7 +44,7 @@ class Context extends Bean implements IRecoverable
      * use to flag bean pool recover, that will auto recover bean to pool.
      * @var array
      */
-    public $recoverableBeans = [];
+    public $reusableBeans = [];
 
     /**
      * initialize
@@ -103,10 +103,10 @@ class Context extends Bean implements IRecoverable
         $this->log = null;
         $this->input = null;
         $this->output = null;
-        foreach ($this->recoverableBeans as $key => $bean) {
+        foreach ($this->reusableBeans as $key => $bean) {
             $this->pool->recover($bean);
         }
-        $this->recoverableBeans = [];
+        $this->reusableBeans = [];
         $this->pool = null;
     }
 }

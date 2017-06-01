@@ -6,7 +6,7 @@ namespace phspring\coroutine;
 
 use phspring\context\Ac;
 use phspring\context\CoroutineContext;
-use phspring\core\IRecoverable;
+use phspring\core\IReusable;
 use phspring\core\PoolBean;
 use phspring\exception\CoroutineException;
 

@@ -10,7 +10,7 @@ use phspring\context\Context;
  * Class PoolBean
  * @package phspring\core
  */
-class PoolBean extends Bean implements IRecoverable
+class PoolBean extends Bean implements IReusable
 {
     /**
      * @var Context
