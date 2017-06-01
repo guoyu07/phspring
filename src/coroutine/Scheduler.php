@@ -73,7 +73,7 @@ class Scheduler extends Bean
                 //...
             } else {
                 if ($task->isFinished()) {
-                    $task->scavenger();
+                    $task->cleanup();
                 } else {
                     $this->schedule($task);
                 }

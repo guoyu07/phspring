@@ -77,6 +77,12 @@ class Select implements IEvent
 
     /**
      * {@inheritdoc}
+     *
+     * @param mixed $fd
+     * @param int $flag
+     * @param callable $func
+     * @param array $args
+     * @return bool|int
      */
     public function add($fd, $flag, $func, $args = [])
     {

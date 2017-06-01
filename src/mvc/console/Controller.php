@@ -24,11 +24,11 @@ class Controller extends \phspring\mvc\Controller
     }
 
     /**
-     * scavenger
+     * cleanup
      */
-    public function scavenger()
+    public function cleanup()
     {
         $this->mode = 'console';
-        parent::scavenger();
+        parent::cleanup();
     }
 }

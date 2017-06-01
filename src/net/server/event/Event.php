@@ -50,7 +50,14 @@ class Event implements IEvent
     }
 
     /**
+     * {@inheritdoc}
      * @see IEvent::add()
+     *
+     * @param mixed $fd
+     * @param int $flag
+     * @param callable $func
+     * @param array $args
+     * @return bool|int
      */
     public function add($fd, $flag, $func, $args = [])
     {

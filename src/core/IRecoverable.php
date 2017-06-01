@@ -14,5 +14,5 @@ interface IRecoverable
      * bean pool clear
      * @return
      */
-    public function scavenger();
+    public function cleanup();
 }

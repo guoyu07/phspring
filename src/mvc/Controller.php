@@ -24,11 +24,11 @@ class Controller extends Base
     }
 
     /**
-     * scavenger
+     * cleanup
      */
-    public function scavenger()
+    public function cleanup()
     {
         $this->isRpc = false;
-        parent::scavenger();
+        parent::cleanup();
     }
 }

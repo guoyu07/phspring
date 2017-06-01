@@ -121,9 +121,9 @@ class CoroutineContext extends Context
     }
 
     /**
-     * scavenger
+     * cleanup
      */
-    public function scavenger()
+    public function cleanup()
     {
         $this->controller = null;
         $this->yieldStack = null;

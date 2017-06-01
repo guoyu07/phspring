@@ -71,7 +71,7 @@ class PoolBean extends Bean implements IRecoverable
      * bean pool clear
      * @return
      */
-    public function scavenger()
+    public function cleanup()
     {
         $this->context = null;
     }

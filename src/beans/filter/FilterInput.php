@@ -15,8 +15,8 @@ class FilterInput extends PoolBean
     /**
      * collection.
      */
-    public function scavenger()
+    public function cleanup()
     {
-        parent::scavenger();
+        parent::cleanup();
     }
 }

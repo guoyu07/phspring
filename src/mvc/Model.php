@@ -11,10 +11,10 @@ namespace phspring\mvc;
 class Model extends Base
 {
     /**
-     * scavenger
+     * cleanup
      */
-    public function scavenger()
+    public function cleanup()
     {
-        parent::scavenger();
+        parent::cleanup();
     }
 }

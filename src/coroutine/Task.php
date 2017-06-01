@@ -143,8 +143,8 @@ class Task extends PoolBean
         }
         $this->coroutineContext->getController()->log->warning($message);
 
-        if (!empty($value) && $value instanceof IBase && method_exists($value, 'scavenger')) {
-            $value->scavenger();
+        if (!empty($value) && $value instanceof IBase && method_exists($value, 'cleanup')) {
+            $value->cleanup();
         }
 
         return $runTaskException;
@@ -184,22 +184,22 @@ class Task extends PoolBean
                 $this->coroutineContext->getController());
         }
 
-        if (!empty($value) && $value instanceof IBase && method_exists($value, 'scavenger')) {
-            $value->scavenger();
+        if (!empty($value) && $value instanceof IBase && method_exists($value, 'cleanup')) {
+            $value->cleanup();
         }
 
         return $runTaskException;
     }
 
     /**
-     * scavenger
+     * cleanup
      */
-    public function scavenger()
+    public function cleanup()
     {
         if (!$this->clear) {
             unset(Ac::$appContext->scheduler->taskMap[$this->coroutineContext->uuid]);
             unset(Ac::$appContext->scheduler->ioCallbacks[$this->coroutineContext->uuid]);
-            $this->coroutineContext->scavenger();
+            $this->coroutineContext->cleanup();
             $this->coroutineContext = null;
             $this->stack = null;
             $this->routine = null;
