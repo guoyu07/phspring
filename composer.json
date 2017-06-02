@@ -1,5 +1,5 @@
 {
-    "name": "syyongx/PhSpring",
+    "name": "syyongx/phspring",
     "description": "The phspring framework.",
     "keywords": [
         "phspring",
@@ -15,9 +15,9 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/syyongx/PhSpring/issues?state=open",
-        "wiki": "https://github.com/syyongx/PhSpring/wiki/",
-        "source": "https://github.com/syyongx/PhSpring"
+        "issues": "https://github.com/syyongx/phspring/issues?state=open",
+        "wiki": "https://github.com/syyongx/phspring/wiki/",
+        "source": "https://github.com/syyongx/phspring"
     },
     "type": "library",
     "require": {
