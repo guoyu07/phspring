@@ -28,7 +28,6 @@ class Controller extends \phspring\mvc\Controller
      */
     public function cleanup()
     {
-        $this->mode = 'console';
         parent::cleanup();
     }
 }

@@ -4,10 +4,13 @@
  */
 namespace phspring\context;
 
+use phspring\beans\log\Log;
 use phspring\core\aop\AopFactory;
 use phspring\core\Bean;
 use phspring\core\IReusable;
 use phspring\core\memory\Pool;
+use phspring\mvc\Input;
+use phspring\mvc\Output;
 
 /**
  * Class Context
@@ -56,25 +59,25 @@ class Context extends Bean implements IReusable
     }
 
     /**
-     * @param $input \phspring\mvc\Input
+     * @param Input $input
      */
-    public function setInput($input)
+    public function setInput(Input $input)
     {
         $this->input = $input;
     }
 
     /**
-     * @param $output \phspring\mvc\Output
+     * @param Output $output
      */
-    public function setOutput($output)
+    public function setOutput(Output $output)
     {
         $this->output = $output;
     }
 
     /**
-     * @param $log
+     * @param Log $log
      */
-    public function setLog($log)
+    public function setLog(Log $log)
     {
         $this->log = $log;
     }
@@ -104,7 +107,7 @@ class Context extends Bean implements IReusable
         $this->input = null;
         $this->output = null;
         foreach ($this->reusableBeans as $key => $bean) {
-            $this->pool->recover($bean);
+            $this->pool->push($bean);
         }
         $this->reusableBeans = [];
         $this->pool = null;

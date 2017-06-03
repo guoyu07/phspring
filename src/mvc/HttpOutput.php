@@ -27,11 +27,6 @@ class HttpOutput extends Output
     protected $headers;
 
     /**
-     * @var View
-     */
-    private $_view;
-
-    /**
      * add cookie
      * @param string $name
      * @param string $value
@@ -56,36 +51,21 @@ class HttpOutput extends Output
     }
 
     /**
-     * get view
+     * @param mixed $content
+     * @param bool $gzip
+     * @param bool $cleanup
      */
-    public function setView($view)
+    public function end($content = '', $gzip = true)
     {
-        $this->_view = $view;
-    }
-
-    /**
-     * render html page.
-     * @param $view
-     * @param array $params
-     * @param bool $partial
-     * @return mixed
-     */
-    public function render($view, $params = [], $partial = false)
-    {
-        $content = $this->_view->render($view, $params, $partial);
-        return $content;
-    }
-
-    /**
-     * @param $data
-     * @param int $status
-     * @return mixed
-     */
-    public function send($data, $status = 200)
-    {
-        $this->sendHeaders();
-        $data = Ac::$appContext->packer->encode($data);
-        // ...
+        $encoding = strtolower($this->request->header['accept-encoding'] ?? '');
+        if ($gzip && strpos($encoding, 'gzip') !== false) {
+            $this->response->gzip(1);
+        }
+        if (!is_string($content)) {
+            $this->setHeader('Content-Type', 'application/json');
+            $content = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        }
+        $this->response->end($content);
     }
 
     /**

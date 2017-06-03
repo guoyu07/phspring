@@ -4,14 +4,14 @@
  */
 namespace phspring\mvc;
 
-use phspring\core\Bean;
 use phspring\core\IReusable;
+use phspring\core\PoolBean;
 
 /**
  * Class Output
  * @package phspring\mvc
  */
-class Output extends Bean implements IReusable
+class Output extends PoolBean implements IReusable
 {
     /**
      * @param $data
@@ -19,7 +19,9 @@ class Output extends Bean implements IReusable
      */
     public function send($data, $status = 200)
     {
-        $data = Ac::$appContext->packer->encode($data);
+        if (!is_string($data)) {
+            $data = Ac::$appContext->packer->encode($data);
+        }
     }
 
     /**

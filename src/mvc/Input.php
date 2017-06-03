@@ -4,15 +4,20 @@
  */
 namespace phspring\mvc;
 
-use phspring\core\Bean;
 use phspring\core\IReusable;
+use phspring\core\PoolBean;
 
 /**
  * Class Input
  * @package phspring\mvc
  */
-class Input extends Bean implements IReusable
+class Input extends PoolBean implements IReusable
 {
+    /**
+     * @var string http|tcp
+     */
+    public $reqType = 'http';
+
     /**
      * bean pool clear
      * @return
