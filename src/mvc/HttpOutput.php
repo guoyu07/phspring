@@ -64,6 +64,7 @@ class HttpOutput extends Output
         }
         $this->addHeader('Content-Length', strlen($body));
         $this->addHeader('Server', 'phspring/' . Ac::$version);
+
         $header = Http::packHeaders($this->headers);
         $this->connection->close($header . $body, $raw);
     }

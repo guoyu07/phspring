@@ -11,6 +11,39 @@ namespace phspring\mvc;
 class HttpInput extends Input
 {
     /**
+     * @var array
+     */
+    public $get = [];
+    /**
+     * @var array
+     */
+    public $post = [];
+    /**
+     * @var array
+     */
+    public $server = [];
+    /**
+     * @var array
+     */
+    public $cookie = [];
+    /**
+     * @var array
+     */
+    public $files = [];
+
+    /**
+     * @param array $data
+     */
+    public function init(array $data)
+    {
+        $this->get = $data['get'];
+        $this->post = $data['post'];
+        $this->server = $data['server'];
+        $this->cookie = $data['cookie'];
+        $this->files = $data['files'];
+    }
+
+    /**
      * @return bool
      */
     public function isGet(): bool
