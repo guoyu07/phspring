@@ -6,6 +6,7 @@ namespace phspring\mvc;
 
 use phspring\core\IReusable;
 use phspring\core\PoolBean;
+use phspring\net\server\connection\Connection;
 
 /**
  * Class Output
@@ -13,6 +14,16 @@ use phspring\core\PoolBean;
  */
 class Output extends PoolBean implements IReusable
 {
+    /**
+     * @var Connection
+     */
+    public $connection = null;
+
+    public function setConnection(Connection $connection)
+    {
+        $this->connection = $connection;
+    }
+
     /**
      * @param $data
      * @param int $status

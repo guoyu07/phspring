@@ -13,6 +13,10 @@ class Controller extends Base
     /**
      * @var string
      */
+    public $layout = 'main';
+    /**
+     * @var string
+     */
     public $mode = 'web';
     /**
      * @var string

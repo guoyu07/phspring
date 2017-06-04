@@ -5,6 +5,7 @@
 namespace phspring\mvc;
 
 use phspring\context\Ac;
+use phspring\net\server\protocol\Http;
 
 /**
  * Class HttpOutput
@@ -13,32 +14,9 @@ use phspring\context\Ac;
 class HttpOutput extends Output
 {
     /**
-     * @var string
-     */
-    public $layout = 'main';
-
-    /**
      * @var array
      */
-    protected $cookies;
-    /**
-     * @var array
-     */
-    protected $headers;
-
-    /**
-     * add cookie
-     * @param string $name
-     * @param string $value
-     * @param int $expire
-     * @param string $path
-     * @param string $domain
-     * @param bool $secure
-     */
-    public function addCookie($name, $value, $expire = 0, $path = '/', $domain = '', $secure = false)
-    {
-        $this->cookies[] = [$name, $value, $expire, $path, $domain, $secure];
-    }
+    protected $headers = [];
 
     /**
      * add header
@@ -51,54 +29,42 @@ class HttpOutput extends Output
     }
 
     /**
-     * @param mixed $content
+     * add cookie
+     * @param string $name
+     * @param string $value
+     * @param int $expire
+     * @param string $path
+     * @param string $domain
+     * @param bool $secure
+     * @param bool $httpOnly
+     */
+    public function addCookie($name, $value, $expire = 0, $path = '/', $domain = '', $secure = false, $httpOnly = false)
+    {
+        $this->addHeader('Set-Cookie', Http::setcookie($name, $value, $expire, $path, $domain, $secure, $httpOnly));
+    }
+
+    /**
+     * @param mixed $body
      * @param bool $gzip
      * @param bool $cleanup
      */
-    public function end($content = '', $gzip = true)
+    public function end($body = '', $gzip = true, $raw = false)
     {
-        $encoding = strtolower($this->request->header['accept-encoding'] ?? '');
-        if ($gzip && strpos($encoding, 'gzip') !== false) {
-            $this->response->gzip(1);
+        if ($gzip) {
+            $this->addHeader('Content-Encoding', 'gzip');
+            $this->addHeader('Vary', 'Accept-Encoding');
+            $body = gzencode($body . " \n", 9);
         }
-        if (!is_string($content)) {
-            $this->setHeader('Content-Type', 'application/json');
-            $content = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        if (!is_string($body)) {
+            $this->addHeader('Content-Type', 'application/json');
+            $body = json_encode($body, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         }
-        $this->response->end($content);
-    }
-
-    /**
-     * send headers
-     */
-    protected function sendHeaders()
-    {
-        if (empty($this->headers)) {
-            return;
+        if (!isset($this->headers['Connection'])) {
+            $this->addHeader('Connection', 'keep-alive');
         }
-        if (!headers_sent()) {
-            foreach ($this->headers as $name => $values) {
-                $name = str_replace(' ', '-', ucwords(str_replace('-', ' ', $name)));
-                $replace = true;
-                foreach ($values as $value) {
-                    header("$name: $value", $replace);
-                    $replace = false;
-                }
-            }
-        }
-        $this->sendCookies();
-    }
-
-    /**
-     * send cookies
-     */
-    protected function sendCookies()
-    {
-        if (empty($this->cookies)) {
-            return;
-        }
-        foreach ($this->cookies as $cookie) {
-            setcookie($cookie[0], $cookie[1], $cookie[2], $cookie[3], $cookie[4], $cookie[5]);
-        }
+        $this->addHeader('Content-Length', strlen($body));
+        $this->addHeader('Server', 'phspring/' . Ac::$version);
+        $header = Http::packHeaders($this->headers);
+        $this->connection->close($header . $body, $raw);
     }
 }
