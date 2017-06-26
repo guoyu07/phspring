@@ -32,6 +32,7 @@ class HttpInput extends Input
     public $files = [];
 
     /**
+     * init
      * @param array $data
      */
     public function init(array $data)

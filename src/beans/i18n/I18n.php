@@ -59,9 +59,9 @@ class I18n extends Bean
 
     /**
      * Mutil language translate, the usage eg.
-     * 1) Ac::trans('common', 'hot', [], 'zh_cn'); // 默认为 app.common
-     * 2) Ac::trans('app.common', 'hot', [], 'zh_cn'); // 结果同 1)
-     * 3) Ac::trans('msg.a', 'hello', ['{foo}' => 'bar', '{key}' => 'val'], 'ja_jp');
+     * 1) Ac::trans('common', 'hot', [], 'zh-CN'); // default app.common
+     * 2) Ac::trans('app.common', 'hot', [], 'zh-CN'); // like 1)
+     * 3) Ac::trans('msg.a', 'hello', ['{foo}' => 'bar', '{key}' => 'val'], 'ja-JP');
      * @param string $category
      * @param string $message
      * @param array $params

@@ -4,6 +4,7 @@
  */
 namespace phspring\beans\filter\acf;
 
+use phspring\beans\filter\ActionFilter;
 use phspring\beans\filter\FilterInput;
 
 /**
@@ -69,14 +70,9 @@ class AccessControl extends ActionFilter
      * @param FilterInput $request the request object.
      * @return bool whether the action should continue to be executed.
      */
-    public function beforeAction(FilterInput $input)
+    public function execute(FilterInput $input)
     {
         $this->initRules();
-
-        $action = $input->action;
-        if (!$this->isActive($action)) {
-            return true;
-        }
 
         /* @var $rule AccessRule */
         foreach ($this->rules as $rule) {

@@ -42,11 +42,11 @@ class Formatter extends Bean
     }
 
     /**
-     * 格式化
+     * format
      *
-     * @param string $pattern 规则模式
-     * @param array $params 参数
-     * @param string $language 语言
+     * @param string $pattern pattern
+     * @param array $params parameters
+     * @param string $language language
      * @return bool|string
      */
     public function format($pattern, $params, $language)

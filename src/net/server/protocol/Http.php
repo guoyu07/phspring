@@ -254,7 +254,6 @@ class Http implements IProtocol
      */
     public static function encode($content, Connection $connection)
     {
-        self::sessionWriteClose();
         return $content;
     }
 
@@ -353,72 +352,6 @@ class Http implements IProtocol
     }
 
     /**
-     * sessionStart
-     *
-     * @return bool
-     */
-    public static function sessionStart()
-    {
-        self::tryGcSessions();
-
-        if (HttpCache::$instance->sessionStarted) {
-            echo "already sessionStarted" . PHP_EOL;
-            return true;
-        }
-        HttpCache::$instance->sessionStarted = true;
-        // Generate a SID.
-        if (!isset($cookie[HttpCache::$sessionName]) || !is_file(HttpCache::$sessionPath . '/ses' . $cookie[HttpCache::$sessionName])) {
-            $fileName = tempnam(HttpCache::$sessionPath, 'ses');
-            if (!$fileName) {
-                return false;
-            }
-            HttpCache::$instance->sessionFile = $fileName;
-            $sessionId = substr(basename($fileName), strlen('ses'));
-            return self::setcookie(
-                HttpCache::$sessionName
-                , $sessionId
-                , ini_get('session.cookie_lifetime')
-                , ini_get('session.cookie_path')
-                , ini_get('session.cookie_domain')
-                , ini_get('session.cookie_secure')
-                , ini_get('session.cookie_httponly')
-            );
-        }
-        if (!HttpCache::$instance->sessionFile) {
-            HttpCache::$instance->sessionFile = HttpCache::$sessionPath . '/ses' . $cookie[HttpCache::$sessionName];
-        }
-        // Read session from session file.
-        if (HttpCache::$instance->sessionFile) {
-            $raw = file_get_contents(HttpCache::$instance->sessionFile);
-            if ($raw) {
-                session_decode($raw);
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Save session.
-     *
-     * @return bool
-     */
-    public static function sessionWriteClose()
-    {
-        if (PHP_SAPI != 'cli') {
-            return session_write_close();
-        }
-        if (!empty(HttpCache::$instance->sessionStarted) && !empty($_SESSION)) {
-            $session_str = session_encode();
-            if ($session_str && HttpCache::$instance->sessionFile) {
-                return file_put_contents(HttpCache::$instance->sessionFile, $session_str);
-            }
-        }
-
-        return empty($_SESSION);
-    }
-
-    /**
      * End, like call exit in php-fpm.
      *
      * @param string $msg
@@ -490,28 +423,6 @@ class Http implements IProtocol
                         $files[$key]['file_type'] = trim($headerValue);
                         break;
                 }
-            }
-        }
-    }
-
-    /**
-     * Try GC sessions.
-     *
-     * @return void
-     */
-    public static function tryGcSessions()
-    {
-        if (HttpCache::$sessionGcProbability <= 0 ||
-            HttpCache::$sessionGcDivisor <= 0 ||
-            rand(1, HttpCache::$sessionGcDivisor) > HttpCache::$sessionGcProbability
-        ) {
-            return;
-        }
-
-        $timeNow = time();
-        foreach (glob(HttpCache::$sessionPath . '/ses*') as $file) {
-            if (is_file($file) && $timeNow - filemtime($file) > HttpCache::$sessionGcMaxLifeTime) {
-                unlink($file);
             }
         }
     }

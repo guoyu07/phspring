@@ -87,7 +87,7 @@ class BeanFactory
             return $this->_singletons[$name];
         }
         if (!isset($this->_beans[$name])) {
-            $this->setBean($name, $option, $args);
+            $this->setBean($name, $context, $option, $args);
         }
 
         $config = $this->_beans[$name];
